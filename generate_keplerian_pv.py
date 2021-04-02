@@ -1,7 +1,7 @@
 #!/bin/env python
 
-from load_alma_data import *
-from generate_keplerian_pv import *
+from PPDisk_Substructures.load_alma_data import *
+from PPDisk_Substructures.generate_keplerian_pv import *
 import astropy.constants as const
 import numpy as np
 

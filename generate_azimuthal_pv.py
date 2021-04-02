@@ -2,8 +2,8 @@
 
 
 
-from load_alma_data import *
-from generate_keplerian_pv import *
+from PPDisk_Substructures.load_alma_data import *
+from PPDisk_Substructures.generate_keplerian_pv import *
 from scipy.interpolate import griddata
 
 import numpy as np
