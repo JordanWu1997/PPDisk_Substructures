@@ -1,9 +1,5 @@
 #!/bin/env python
 
-
-
-from PPDisk_Substructures.load_alma_data import *
-from PPDisk_Substructures.generate_keplerian_pv import *
 from scipy.interpolate import griddata
 
 import numpy as np
@@ -18,7 +14,7 @@ def Project_to_sky_plane(x, y, pa, inc):
     Output:
         xp, yp  : Ouput sky-plane coordinate　(in pixel)
     '''
-    pa_rad, inc_rad = Deg_to_rad(pa), Deg_to_rad(inc)
+    pa_rad, inc_rad = np.deg2rad(pa), np.deg2rad(inc)
     xp = x * np.cos(pa_rad) + y * np.sin(pa_rad) * np.cos(inc_rad)
     yp = x * np.sin(pa_rad) - y * np.cos(inc_rad) * np.cos(pa_rad)
     return xp, yp
@@ -47,7 +43,7 @@ def Transform_radius_to_XY(data_2D, r, pa, inc, slices=360, **kwarg):
     # xpr, ypr
     xpr_list, ypr_list = [], []
     for th in th_list:
-        xr, yr = r * np.cos(Deg_to_rad(th)), r * np.sin(Deg_to_rad(th))
+        xr, yr = r * np.cos(np.deg2rad(th)), r * np.sin(np.deg2rad(th))
         xpr, ypr = Project_to_sky_plane(xr, yr, pa, inc)
         xpr, ypr = xpr + cx, ypr + cy
         xpr_list.append(xpr)
@@ -76,7 +72,7 @@ def Generate_inner_outer_boundary(data_2D, rc, rw, pa, inc):
 
 def Generate_radii_and_thetas_of_2D_data(data_2D, pa, inc, **kwarg):
     '''
-    Generate radius and polar angle profile of inoyt 2D data array
+    Generate radius and polar angle profile of input 2D data array
     Input:
         data_2D : 2D array
         pa      : Position angle (in deg)
@@ -95,15 +91,47 @@ def Generate_radii_and_thetas_of_2D_data(data_2D, pa, inc, **kwarg):
         cx, cy = int(len(empty[0])/2), int(len(empty)/2)
 
     # Generate radius, polar angle
-    x_pix  = np.array([np.arange(0, len(empty[0]), 1).astype(int) - cx])
-    y_pix  = np.array([np.arange(0, len(empty), 1).astype(int) - cy])
+    x_pix = np.array([np.arange(0, len(empty[0]), 1).astype(int) - cx])
+    y_pix = np.array([np.arange(0, len(empty), 1).astype(int) - cy])
 
     # Radius after project from circular to ellptical ring
     x_pixs, y_pixs   = np.meshgrid(x_pix, y_pix)
     xp_pixs, yp_pixs = Project_to_sky_plane(x_pixs, y_pixs, pa, inc)
     rp_pixs = (xp_pixs ** 2 + yp_pixs ** 2) ** 0.5
-    thetas  = Rad_to_deg(np.arctan2(xp_pixs, yp_pixs))
+
+    # Note: For normal arctan, it should be y/x, but here I want
+    thetas  = np.rad2deg(np.arctan2(xp_pixs, yp_pixs))
     return rp_pixs, thetas
+
+def Generate_azimuthal_cut(data_2D, rc_cut_pix, rw_cut_pix, pa, inc, **kwarg):
+    '''
+    Generate azimuthal cut of 2D data array
+    Input:
+        data_2D : 2D array
+        pa      : Position angle (in deg)
+        inc     : Inclination angle (in deg)
+        xc, yc  : Center of data (in pixel)
+    Output:
+        theta_list : 1D list with corresponding theta angle (in deg)
+        cut_list   : 1D list with corresponding cut value
+    '''
+    # Initialization
+    empty = np.empty_like(data_2D)
+    # Center of input data (in pixel)
+    if ('cx' in kwarg) and ('cy' in kwarg):
+        cx, cy = kwarg['cx'], kwarg['cy']
+    else:
+        cx, cy = int(len(empty[0])/2), int(len(empty)/2)
+    # Generate rs, thetas
+    rp_pixs, thetas = Generate_radii_and_thetas_of_2D_data(data_2D, pa, inc,
+                                                           cx=cx, cy=cy)
+    # Azimuthal cut
+    theta_list, cut_list = [], []
+    x_rcw, y_rcw = np.where(abs(rp_pixs - rc_cut_pix) <= rw_cut_pix/2.)
+    for x, y in zip(x_rcw.T, y_rcw.T):
+        theta_list.append(thetas[y, x])
+        cut_list.append(data_2D[y, x])
+    return theta_list, cut_list
 
 def Generate_non_average_PV_cut(data_3D, velax, rc, rw, pa, inc, interpolation=False, **kwarg):
     '''
@@ -174,6 +202,6 @@ def Get_peak_intensity_velocity(X, Y, Z):
     # Plot peak
     peak_list = []
     for i in range(len(Z[0])):
-        peak = Y[list(Z[:,i]).index(max(Z[:,i])), i]
+        peak = Y[list(Z[:, i]).index(max(Z[:, i])), i]
         peak_list.append(peak)
     return peak_list

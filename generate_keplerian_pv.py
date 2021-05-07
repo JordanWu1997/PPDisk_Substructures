@@ -1,7 +1,6 @@
 #!/bin/env python
 
-from PPDisk_Substructures.load_alma_data import *
-from PPDisk_Substructures.generate_keplerian_pv import *
+from PPDisk_Substructures.ALMA_datacube import ALMA_datacube
 import astropy.constants as const
 import numpy as np
 
@@ -13,6 +12,7 @@ M_s  = const.M_sun.value
 def Generate_LOS_Keplerian_vt_thin_disk(r_pix, t, au_pix, inc, m_star, v_sys, t_origin_shift=0.):
     '''
     Generate velocity of Keplerian motion in line of sight (SI unit)
+
     Input:
         r_pix  : Radius (in pixel)
         t      : Theta (in deg)
@@ -26,7 +26,7 @@ def Generate_LOS_Keplerian_vt_thin_disk(r_pix, t, au_pix, inc, m_star, v_sys, t_
     '''
     r      = au * au_pix * r_pix
     v_r    = (G * M_s / r) ** 0.5
-    vt_obs = v_sys + v_r * np.sin(Deg_to_rad(inc)) * np.cos(Deg_to_rad(t - t_origin_shift))
+    vt_obs = v_sys + v_r * np.sin(np.deg2rad(inc)) * np.cos(np.deg2rad(t - t_origin_shift))
     return vt_obs
 
 def Generate_LOS_Keplerian_vt_thick_disk(r_pix, t, au_pix, inc, m_star, v_sys, aspect_ratio=0.1, t_origin_shift=0.):
@@ -51,7 +51,7 @@ def Generate_LOS_Keplerian_vt_thick_disk(r_pix, t, au_pix, inc, m_star, v_sys, a
     r      = au * au_pix * r_pix
     z      = r * aspect_ratio
     v_r    = (G * M_s * r**2 / (r**2+z**2)**(3/2)) ** 0.5
-    vt_obs = v_sys + v_r * np.sin(Deg_to_rad(inc)) * np.cos(Deg_to_rad(t - t_origin_shift))
+    vt_obs = v_sys + v_r * np.sin(np.deg2rad(inc)) * np.cos(np.deg2rad(t - t_origin_shift))
     return vt_obs
 
 def Generate_Keplerian_PV_cut(disk_model, velax, r_pix, ts, au_pix, pa, inc, m_star, v_sys, output='velocity',  **kwargs):
@@ -74,7 +74,7 @@ def Generate_Keplerian_PV_cut(disk_model, velax, r_pix, ts, au_pix, pa, inc, m_s
     for t in ts:
         vv = disk_model(r_pix, t, au_pix, inc, m_star, v_sys, **kwargs)
         vv_list.append(vv)
-        vc = Convert_velocity_to_channel(vv, velax)
+        vc = ALMA_datacube.Convert_velocity_to_channel(vv, velax)
         vc_list.append(vc)
     if output == 'velocity':
         return vv_list
