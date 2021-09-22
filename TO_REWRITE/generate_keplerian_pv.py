@@ -50,7 +50,7 @@ def Generate_LOS_Keplerian_vt_thick_disk(r_pix, t, au_pix, inc, m_star, v_sys, a
     '''
     r      = au * au_pix * r_pix
     z      = r * aspect_ratio
-    v_r    = (G * M_s * r**2 / (r**2+z**2)**(3/2)) ** 0.5
+    v_r    = (G * M_s * r / (r**2 + z**2)) ** 0.5
     vt_obs = v_sys + v_r * np.sin(np.deg2rad(inc)) * np.cos(np.deg2rad(t - t_origin_shift))
     return vt_obs
 
