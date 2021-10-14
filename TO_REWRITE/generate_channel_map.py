@@ -64,7 +64,7 @@ def main():
     for i in range(15, 45):
         print(i)
         sub0 = plot_a_map(cube_file,
-                          fig, (6,5, i-14), 'vel km/s', '',
+                          fig, (6, 5, i-14), 'vel km/s', '',
                           m=-0.0005, M=0.03,
                           slices=[i, 0], dim=[0,1])
         frq_rpix = sub0._header['CRPIX3']

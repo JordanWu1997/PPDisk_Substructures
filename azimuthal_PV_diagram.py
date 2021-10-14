@@ -8,244 +8,128 @@
 # :Description: This code is to generate azimuthal PV diagram from ALMA data
 # ############################################################################
 
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import griddata
+
 from ALMA_data_manipulation import ObsData
 from coordinate_transformation import CoordinateTransformation
 
 
 class AzimuthalPVDiagram():
+    """Generate azimuthal position-velocity diagram"""
     def __init__(self):
         pass
 
-
     @staticmethod
-    def transform_disk_polar_to_sky_cartesian(radius, disk_pos, disk_inc, slices=360, offset_x=0., offset_y=0.):
-        """
+    def round_to_pix(prop):
+        """Round input float property to pixel number
 
         Args:
-          pos: position angle of disk (unit: degree)
-          radius(float): radius of disk ring
-          inc: inclination angle of disk (unit: degree)
-          theta_slices: slices of a ring in theta direction (Default value = 360)
-          offset_x: offset of disk center in x direction (Default value = 0.)
-          offset_y: offset of disk center in y direction (Default value = 0.)
+          prop(float): property to be rounded to pixel(integer)
 
         Returns:
-          float: x position on sky plane
-          float: y position on sky plane
+          int: pixel number
+
         """
-        # Theta list
-        theta_list = np.linspace(0., 360., theta_slices)
+        return np.rint(prop).astype(int)
 
-        # Transform to sky coordinate
-        sky_x_list, sky_y_list = [], []
-        for theta in theta_list:
-            disk_x, disk_y = radius * np.cos(np.deg2rad(theta)), radius * np.sin(
-                np.deg2rad(theta))
-            sky_x, sky_y = CoordinateTransformation.transform_to_sky_coord(disk_x, disk_y, disk_pos, disk_inc)
-            sky_x_offset_added, sky_y_offset_added = sky_x - offset_x, sky_y - offset_y
-            sky_x_list.append(sky_x_offset_added)
-            sky_y_list.append(sky_y_offset_added)
+    def find_physical_in_pix(self, prop, r_physical_pix):
+        """Find physical property corresponding pixel number
 
-        # List to array
-        sky_x_array = np.array(sky_x_list)
-        sky_y_array = np.array(sky_y_list)
+        Args:
+          prop(float): physical property
+          r_physical_pixel(float): ratio between physical property and pixel
 
-        return sky_x_array, sky_y_array
+        Returns:
+          int: pixel number
 
+        """
+        return self.round_to_pix(prop / r_physical_pix)
 
+    def set_disk_polar_to_vel_map(self, vel_map, disk_pos, disk_inc, offset_x,
+                                  offset_y, r_physical_pix, return_cartesian=False):
+        """Set disk corresponding radius and theta on sky plane for 2D map
 
-        @staticmethod
-        def generate_ring_strip_on_sky_plane(ring_center, ring_width, disk_pos, disk_inc):
-            ring_inner_bound = ring_center - ring_width/2.
-            ring_outer_bound = ring_center + ring_width/2.
+        Args:
+          vel_map(2D float array):
+          disk_pos(float): position angle of disk
+          disk_inc(float): inclination angle of disk
+          offset_x(float): disk center x position offset
+          offset_y(float): disk center y position offset
+          r_physical_pix:
+          r_physical_pixel(float): ratio of physical property and pixel
+          return_cartesian: set True to return x,y position on sky plane
 
-            self.transform_disk_polar_to_sky_plane_cartesian()
+        Returns:
+          2D float array: Disk corresponding radius on sky plane for 2D map
+          2D float array: Disk corresponding theta on sky plane for 2D map
+          2D float array: Disk corresponding x position on sky plane for 2D map
+          2D float array: Disk corresponding y position on sky plane for 2D map
 
+        """
+        empty_map = np.empty_like(vel_map)
+        range_y_pix, range_x_pix = np.shape(empty_map)
+        offset_x_pix = self.find_physical_in_pix(offset_x, r_physical_pix)
+        offset_y_pix = self.find_physical_in_pix(offset_y, r_physical_pix)
+        disk_center_x_pix = int(range_x_pix / 2) + offset_x_pix
+        disk_center_y_pix = int(range_y_pix / 2) + offset_y_pix
 
-    gap_inner = transform_disk_polar_to_sky_plane_cartesian(xdim, ydim, r_inner, pos, inc, r_unit=r_unit)
-    gap_outer = transform_disk_polar_to_sky_plane_cartesian(xdim, ydim, r_outer, pos, inc, r_unit=r_unit)
-    return gap_inner, gap_outer
+        x_pix = np.arange(0, range_x_pix, 1).astype(int) - disk_center_x_pix
+        y_pix = np.arange(0, range_y_pix, 1).astype(int) - disk_center_y_pix
+        xs_pix, ys_pix = np.meshgrid(x_pix, y_pix)
+        xs_sky_pix, ys_sky_pix = CoordinateTransformation.transform_to_sky_coord(
+            xs_pix, ys_pix, disk_pos, disk_inc)
+        thetas_sky_deg = np.rad2deg(np.arctan2(ys_sky_pix, xs_sky_pix))
+        radii_sky_pix = (xs_sky_pix**2 + ys_sky_pix**2)**0.5
 
+        if return_cartesian:
+            return radii_sky_pix, thetas_sky_deg, xs_sky_pix, ys_sky_pix
+        else:
+            return radii_sky_pix, thetas_sky_deg
 
+    def set_disk_polar_to_vel_map_test(self):
+        """Test set_disk_polar_to_vel_map"""
+
+        test_vel_map = np.ones((100, 100))
+        test_disk_pos = 120
+        test_disk_inc = 47.5
+        test_radius_sky_pix = 30
+        test_offset_x = 3.0
+        test_offset_y = 2.0
+        test_r_physical_pix = 0.3
+
+        test_radius_sky_pix, test_theta_sky, x_pixs, y_pixs = self.set_disk_polar_to_vel_map(
+            test_vel_map, test_disk_pos, test_disk_inc, test_offset_x,
+            test_offset_y, test_r_physical_pix, return_cartesian=True)
+
+        plt.subplots(1, 4, figsize=(16, 4))
+        plt.subplot(1, 4, 1)
+        plt.imshow(test_radius_sky_pix, origin='lower')
+        plt.title("radius (x^2+y^2(disk->sky))")
+        plt.colorbar()
+        plt.grid()
+        plt.subplot(1, 4, 2)
+        plt.imshow(test_theta_sky, origin='lower')
+        plt.title("theta (arctan(y/x) sky)")
+        plt.colorbar()
+        plt.grid()
+        plt.subplot(1, 4, 3)
+        plt.imshow(x_pixs, origin='lower')
+        plt.title("x (disk->sky)")
+        plt.colorbar()
+        plt.grid()
+        plt.subplot(1, 4, 4)
+        plt.imshow(y_pixs, origin='lower')
+        plt.title("y (disk->sky)")
+        plt.colorbar()
+        plt.grid()
+        plt.suptitle(
+            'Transform from disk coord. to sky coord. (disk_inc={:.1f}°, disk_pos={:.1f}°)'
+            .format(test_disk_inc, test_disk_pos))
+        plt.show()
 
 
 if __name__ == '__main__':
-    pass
-
-
-
-
-# def Generate_radii_and_thetas_of_2D_data(data_2D, pa, inc, **kwarg):
-    # """Generate radius and polar angle profile of input 2D data array
-    # Input:
-        # data_2D : 2D array
-        # pa      : Position angle (in deg)
-        # inc     : Inclination angle (in deg)
-        # xc, yc  : Center of data (in pixel)
-    # Output:
-        # rs_pix: 2D array with corresponding radius (in pixel)
-        # theta : 2D array with corresponding theta angle (in deg)
-
-    # Args:
-      # data_2D: param pa:
-      # inc: param **kwarg:
-      # pa:
-      # **kwarg:
-
-    # Returns:
-
-    # """
-    # # Initialization
-    # empty = np.empty_like(data_2D)
-    # # Center of input data (in pixel)
-    # if ('cx' in kwarg) and ('cy' in kwarg):
-        # cx, cy = kwarg['cx'], kwarg['cy']
-    # else:
-        # cx, cy = int(len(empty[0])/2), int(len(empty)/2)
-
-    # # Generate radius, polar angle
-    # x_pix = np.array([np.arange(0, len(empty[0]), 1).astype(int) - cx])
-    # y_pix = np.array([np.arange(0, len(empty), 1).astype(int) - cy])
-
-    # # Radius after project from circular to ellptical ring
-    # x_pixs, y_pixs   = np.meshgrid(x_pix, y_pix)
-    # xp_pixs, yp_pixs = Project_to_sky_plane(x_pixs, y_pixs, pa, inc)
-    # rp_pixs = (xp_pixs ** 2 + yp_pixs ** 2) ** 0.5
-
-    # # Note: For normal arctan, it should be y/x, but here I want
-    # thetas  = np.rad2deg(np.arctan2(xp_pixs, yp_pixs))
-    # return rp_pixs, thetas
-
-# def Generate_azimuthal_cut(data_2D, rc_cut_pix, rw_cut_pix, pa, inc, **kwarg):
-    # """Generate azimuthal cut of 2D data array
-    # Input:
-        # data_2D : 2D array
-        # pa      : Position angle (in deg)
-        # inc     : Inclination angle (in deg)
-        # xc, yc  : Center of data (in pixel)
-    # Output:
-        # theta_list : 1D list with corresponding theta angle (in deg)
-        # cut_list   : 1D list with corresponding cut value
-
-    # Args:
-      # data_2D: param rc_cut_pix:
-      # rw_cut_pix: param pa:
-      # inc: param **kwarg:
-      # rc_cut_pix:
-      # pa:
-      # **kwarg:
-
-    # Returns:
-
-    # """
-    # # Initialization
-    # empty = np.empty_like(data_2D)
-    # # Center of input data (in pixel)
-    # if ('cx' in kwarg) and ('cy' in kwarg):
-        # cx, cy = kwarg['cx'], kwarg['cy']
-    # else:
-        # cx, cy = int(len(empty[0])/2), int(len(empty)/2)
-    # # Generate rs, thetas
-    # rp_pixs, thetas = Generate_radii_and_thetas_of_2D_data(data_2D, pa, inc,
-                                                           # cx=cx, cy=cy)
-    # # Azimuthal cut
-    # theta_list, cut_list = [], []
-    # x_rcw, y_rcw = np.where(abs(rp_pixs - rc_cut_pix) <= rw_cut_pix/2.)
-    # for x, y in zip(x_rcw.T, y_rcw.T):
-        # theta_list.append(thetas[y, x])
-        # cut_list.append(data_2D[y, x])
-    # return theta_list, cut_list
-
-# def Generate_non_average_PV_cut(data_3D, velax, rc, rw, pa, inc, interpolation=False, **kwarg):
-    # """Generate non average PV_cut (Exact data pixel by pixel + Interpolation)
-    # Input:
-        # data_3D : 3D PPV data cube
-        # velax   : Velocity on velocity axis (frequency axis)
-        # rc      : center of radius of ring (in pixel)
-        # rw      : width of ring (in pixel)
-        # pa      : position angle (in deg)
-        # inc     : inclination angle (in deg)
-    # Output:
-        # X : 2D array of theta
-        # Y : 2D array of velocity
-        # Z : 2D array of intensity
-
-    # Args:
-      # data_3D: param velax:
-      # rc: param rw:
-      # pa: param inc:
-      # interpolation: Default value = False)
-      # velax:
-      # rw:
-      # inc:
-      # **kwarg:
-
-    # Returns:
-
-    # """
-    # # Generate polar angle and velocity position coordinate in specific radius and width
-    # rp_pixs, thetas = Generate_radii_and_thetas_of_2D_data(data_3D[0], pa, inc, **kwarg)
-    # x_rcw, y_rcw = np.where(abs(rp_pixs - rc) <= rw/2.)
-
-    # # Get points from input data
-    # theta_list = []
-    # intensity_list = []
-    # velocity_list  = []
-    # for i, velocity in enumerate(velax):
-        # for x, y in zip(x_rcw.T, y_rcw.T):
-            # theta_list.append(thetas[y, x])
-            # intensity_list.append(data_3D[i][y, x])
-            # velocity_list.append(velocity)
-    # x = np.array(theta_list)
-    # y = np.array(velocity_list)
-    # z = np.array(intensity_list)
-
-    # if interpolation:
-        # # Start inteprolation from 3D sparse to 3D continuum
-        # ny, nx = len(velax), 720
-        # xmin, xmax = min(theta_list), max(theta_list)
-        # ymin, ymax = min(velocity_list), max(velocity_list)
-        # xi   = np.linspace(xmin, xmax, nx)
-        # yi   = np.linspace(ymin, ymax, ny)
-        # X, Y = np.meshgrid(xi, yi)
-        # Z    = griddata((x, y), z, (X, Y), method='nearest')
-        # return X, Y, Z
-    # else:
-        # # Reshape and Sort
-        # xr = x.reshape(len(velax), int(len(x)/len(velax)))
-        # yr = y.reshape(len(velax), int(len(y)/len(velax)))
-        # zr = z.reshape(len(velax), int(len(z)/len(velax)))
-        # xrs, yrs, zrs = [], [], []
-        # sort_ind = np.argsort(xr[0])
-        # for x, y, z in zip(xr, yr, zr):
-            # xs, ys, zs = x[sort_ind], y[sort_ind], z[sort_ind]
-            # xrs.append(xs)
-            # yrs.append(ys)
-            # zrs.append(zs)
-        # xrs, yrs, zrs = np.array(xrs), np.array(yrs), np.array(zrs)
-        # return xrs, yrs, zrs
-
-# def Get_peak_intensity_velocity(X, Y, Z):
-    # """Input:
-        # X : 2D array of theta
-        # Y : 2D array of velocity
-        # Z : 2D array of intensity
-    # Output:
-        # peak_list (velocity along polar angle (theta))
-
-    # Args:
-      # X: param Y:
-      # Z:
-      # Y:
-
-    # Returns:
-
-    # """
-    # # Plot peak
-    # peak_list = []
-    # for i in range(len(Z[0])):
-        # peak = Y[list(Z[:, i]).index(max(Z[:, i])), i]
-        # peak_list.append(peak)
-    # return peak_list
+    azimuthal_PV_diagram = AzimuthalPVDiagram()
+    azimuthal_PV_diagram.set_disk_polar_to_vel_map_test()

@@ -21,8 +21,11 @@ import wget
 def find_label(input_list, label):
     """
 
-    :param input_list:
-    :param label:
+    Args:
+      input_list:
+      label:
+
+    Returns:
 
     """
     return [inp for inp in input_list if label in inp]
@@ -31,8 +34,11 @@ def find_label(input_list, label):
 def add_data_archive(input_list, data_archive):
     """
 
-    :param input_list:
-    :param data_archive:
+    Args:
+      input_list:
+      data_archive:
+
+    Returns:
 
     """
     return [data_archive + inp for inp in input_list]
@@ -41,10 +47,13 @@ def add_data_archive(input_list, data_archive):
 def find_target(input_list, label='continuum', sep='_', target_id=0):
     """
 
-    :param input_list:
-    :param label:  (Default value = 'continuum')
-    :param sep:  (Default value = '_')
-    :param target_id:  (Default value = 0)
+    Args:
+      input_list:
+      sep: Default value = '_')
+      target_id: Default value = 0)
+      label:  (Default value = 'continuum')
+
+    Returns:
 
     """
     return [inp.split(sep)[target_id] for inp in input_list]
