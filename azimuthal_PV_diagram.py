@@ -109,6 +109,7 @@ class AzimuthalPVDiagram():
 
         Returns:
           2D float array: Disk corresponding radius on sky plane for 2D map 2D float array: Disk corresponding theta on sky plane for 2D map 2D float array: Disk corresponding x position on sky plane for 2D map 2D float array: Disk corresponding y position on sky plane for 2D map
+
         """
         empty_map = np.empty_like(map_2D)
         range_y_pix, range_x_pix = np.shape(empty_map)
@@ -413,6 +414,7 @@ def generate_azimuthal_PV_diagram(cube, vel_axis, r_center_pix, r_width_pix,
     outputs = AzimuthalPVDiagram().azimuthal_PV_cut_from_cube(
         cube, vel_axis, r_center_pix, r_width_pix, disk_pos, disk_inc,
         offset_x_pix, offset_y_pix)
+
     AzimuthalPVDiagram().plot_contour_PV_diagram(
         outputs[0],
         outputs[1],
