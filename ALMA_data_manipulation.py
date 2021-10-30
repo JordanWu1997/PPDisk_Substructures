@@ -76,6 +76,8 @@ class ObsData():
         self.gap_width = gap_width
         self.offset_x = offset_x
         self.offset_y = offset_y
+        self.offset_x_pix = self.round_to_pix(offset_x * 1.e-3 / self.r_asec_pix)
+        self.offset_y_pix = self.round_to_pix(offset_y * 1.e-3 / self.r_asec_pix)
 
     def planet_property(self, planet_pos, planet_sep):
         """Input planet property for observing object
@@ -90,6 +92,19 @@ class ObsData():
         self.planet_pos = planet_pos
         self.planet_sep = planet_sep
 
+    @staticmethod
+    def round_to_pix(prop):
+        """Round input float property to pixel number
+
+        Args:
+          prop(float): property to be rounded to pixel(integer)
+
+        Returns:
+          int: pixel number
+
+        """
+        return np.rint(prop).astype(int)
+
     def freqax2velax(self, axis=3):
         """Transform from frequency axis to velocity axis
 
@@ -97,7 +112,7 @@ class ObsData():
           axis(int, optional): axis of frequency (Default value = 3)
 
         Returns:
-          : velocity axis
+          velocity axis (unit: m/s)
 
         """
         x0 = self.header['CRVAL{:d}'.format(axis)]
@@ -120,7 +135,7 @@ class ObsData():
           velax(1D float array): velocity axis (unit: m/s)
 
         Returns:
-          : channel index
+          channel index
 
         """
         return np.where(min(velax[velax >= vel]))[0][0]
@@ -132,7 +147,7 @@ class ObsData():
           pix(int): pixel number (unit: count)
 
         Returns:
-          : arcsec
+          arcsec
 
         """
         return pix * self.r_asec_pix
@@ -144,7 +159,7 @@ class ObsData():
           asec(float): arcsec (unit: arcsec)
 
         Returns:
-          : pixel number
+          pixel number
 
         """
         return round(asec / self.r_asec_pix)
@@ -157,7 +172,7 @@ class ObsData():
           deg(float): degree (unit: deg)
 
         Returns:
-          : arcsec
+          arcsec
 
         """
         return deg * 3600.
@@ -171,7 +186,7 @@ class ObsData():
           dist_pc(float): distance to observing object (unit: pc)
 
         Returns:
-          : au
+          au
 
         """
         return dist_pc * asec
