@@ -17,6 +17,7 @@ class ObsData():
     """Observation data property loading, storage and manipulation"""
     # Constants (SI unit)
     G = const.G.value
+    au = const.au.value
     c = const.c.value
     M_s = const.M_sun.value
 
@@ -27,6 +28,7 @@ class ObsData():
         bmin_deg = float(abs(header['BMIN']))
         r_deg_pix = float(abs(header['CDELT2']))
         r_asec_pix = self.deg2asec(r_deg_pix)
+        r_au_pix = self.asec2au(r_asec_pix, dist)
 
         self.fitsfile = fitsfile
         self.data = data
@@ -36,6 +38,7 @@ class ObsData():
         self.bmin_deg = bmin_deg
         self.r_deg_pix = r_deg_pix
         self.r_asec_pix = r_asec_pix
+        self.r_au_pix = r_au_pix
 
     def stellar_property(self, stellar_mass, sys_vel):
         """Input stellar property for observing object
@@ -76,8 +79,10 @@ class ObsData():
         self.gap_width = gap_width
         self.offset_x = offset_x
         self.offset_y = offset_y
-        self.offset_x_pix = self.round_to_pix(offset_x * 1.e-3 / self.r_asec_pix)
-        self.offset_y_pix = self.round_to_pix(offset_y * 1.e-3 / self.r_asec_pix)
+        self.offset_x_pix = self.round_to_pix(offset_x * 1.e-3 /
+                                              self.r_asec_pix)
+        self.offset_y_pix = self.round_to_pix(offset_y * 1.e-3 /
+                                              self.r_asec_pix)
 
     def planet_property(self, planet_pos, planet_sep):
         """Input planet property for observing object
@@ -100,7 +105,7 @@ class ObsData():
           prop(float): property to be rounded to pixel(integer)
 
         Returns:
-          int: pixel number
+          pixel number(int): pixel number
 
         """
         return np.rint(prop).astype(int)
@@ -112,7 +117,7 @@ class ObsData():
           axis(int, optional): axis of frequency (Default value = 3)
 
         Returns:
-          velocity axis (unit: m/s)
+          velax(float): velocity axis (unit: m/s)
 
         """
         x0 = self.header['CRVAL{:d}'.format(axis)]
@@ -123,6 +128,7 @@ class ObsData():
             'CRPIX{:d}'.format(axis)] + 1.0
         velax = x0 + velax * dx
         velax = self.c * (nu0 - velax) / nu0
+        velax = velax.T
 
         return velax
 
@@ -135,10 +141,20 @@ class ObsData():
           velax(1D float array): velocity axis (unit: m/s)
 
         Returns:
-          channel index
+          chan_index(int): velocity channel index
 
         """
-        return np.where(min(velax[velax >= vel]))[0][0]
+        chan_index_list = np.where(velax >= vel)[0]
+        chan_bd1 = chan_index_list[0]
+        chan_bd2 = chan_bd1 - 1
+        dist_bd1 = abs(vel - velax[chan_bd1])
+        dist_bd2 = abs(vel - velax[chan_bd2])
+        if dist_bd1 > dist_bd2:
+            chan_index = chan_bd2
+        else:
+            chan_index = chan_bd1
+
+        return chan_index
 
     def pix2asec(self, pix):
         """Transform from pixel number to arcsec
@@ -147,10 +163,22 @@ class ObsData():
           pix(int): pixel number (unit: count)
 
         Returns:
-          arcsec
+          arcsec(float): arcsec
 
         """
         return pix * self.r_asec_pix
+
+    def pix2au(self, pix):
+        """Transform from pixel number to au
+
+        Args:
+          pix(int): pixel number (unit: count)
+
+        Returns:
+          au(float): au
+
+        """
+        return pix * self.r_au_pix
 
     def asec2pix(self, asec):
         """Transform from arcsec to pixel number
@@ -182,7 +210,7 @@ class ObsData():
         """Transform from arcsec to au
 
         Args:
-          asec: arcsec (unit: arcsec)
+          asec(float): arcsec (unit: arcsec)
           dist_pc(float): distance to observing object (unit: pc)
 
         Returns:
@@ -190,3 +218,24 @@ class ObsData():
 
         """
         return dist_pc * asec
+
+
+def main():
+    """Main functions in ALMA_data_manipulation.py"""
+
+    # Load ALMA data
+    IM_Lup = ObsData(
+        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
+        158.)
+    IM_Lup.stellar_property(1.12, 4250)
+    IM_Lup.disk_property(47.5,
+                         144.5,
+                         np.array([117.]),
+                         np.array([117. * 0.13]),
+                         offset_x=-1.5,
+                         offset_y=1.0)
+    IM_Lup.planet_property(np.array([69.]), np.array([0.77]))
+
+
+if __name__ == '__main__':
+    main()
