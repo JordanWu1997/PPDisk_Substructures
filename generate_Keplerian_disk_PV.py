@@ -243,37 +243,37 @@ def plot_LOS_Kepleran_PV_cut(PPDisk,
     if new_figure:
         plt.figure(figsize=(12, 6))
 
-    plt.plot(thetas,
-             LOS_vel_thin_vel,
-             ls='-',
-             c='r',
-             label=r'$V_{SI}=(\frac{GM}{r^2})^\frac{1}{2}$')
+    # plt.plot(thetas,
+             # LOS_vel_thin_vel,
+             # ls='-',
+             # c='r',
+             # label=r'$V_{SI}=(\frac{GM}{r^2})^\frac{1}{2}$')
     plt.plot(thetas,
              LOS_vel_thin_chan,
              ls='--',
              c='r',
              label=r'$V_{chan}=(\frac{GM}{r^2})^\frac{1}{2}$')
-    plt.plot(
-        thetas,
-        LOS_vel_thick_vel_r,
-        ls='-',
-        c='g',
-        label=
-        r'$V_{r\_SI}=(\frac{GM}{r^2+z^2})^\frac{1}{2}(\frac{r}{(r^2+z^2)^{\frac{1}{2}}})^\frac{1}{2}$'
-    )
+    # plt.plot(
+        # thetas,
+        # LOS_vel_thick_vel_r,
+        # ls='-',
+        # c='lime',
+        # label=
+        # r'$V_{r\_SI}=(\frac{GM}{r^2+z^2})^\frac{1}{2}(\frac{r}{(r^2+z^2)^{\frac{1}{2}}})^\frac{1}{2}$'
+    # )
     plt.plot(
         thetas,
         LOS_vel_thick_chan_r,
         ls='--',
-        c='g',
+        c='lime',
         label=
         r'$V_{r\_chan}=(\frac{GM}{r^2+z^2})^\frac{1}{2}(\frac{r}{(r^2+z^2)^{\frac{1}{2}}})^\frac{1}{2}$'
     )
-    plt.plot(thetas,
-             LOS_vel_thick_vel_r_z,
-             ls='-',
-             c='b',
-             label=r'$V_{r\_z\_SI}=(\frac{GM}{r^2+z^2})^\frac{1}{2}$')
+    # plt.plot(thetas,
+             # LOS_vel_thick_vel_r_z,
+             # ls='-',
+             # c='b',
+             # label=r'$V_{r\_z\_SI}=(\frac{GM}{r^2+z^2})^\frac{1}{2}$')
     plt.plot(thetas,
              LOS_vel_thick_chan_r_z,
              ls='--',

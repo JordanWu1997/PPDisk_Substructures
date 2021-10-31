@@ -139,7 +139,7 @@ class AzimuthalPVDiagram():
     def azimuthal_PV_cut_from_cube(self, cube, vel_axis, r_center_pix,
                                    r_width_pix, disk_pos, disk_inc,
                                    offset_x_pix, offset_y_pix):
-        """Generate azimuthal PV cut from 3D cube datat
+        """Generate azimuthal PV cut from 3D cube data
 
         Args:
           cube(3D float array): 3D datacube map
@@ -263,15 +263,15 @@ class AzimuthalPVDiagram():
             plt.scatter(X,
                         Y,
                         c='black',
-                        s=5,
+                        s=4,
                         label='data_point_from_PV_cut',
-                        alpha=0.1)
+                        alpha=0.05)
 
         if show_peak_intensity_velocity:
             plt.scatter(X[0],
                         peak_intensity_velocity_array,
-                        c='red',
-                        s=5,
+                        c='yellow',
+                        s=4,
                         label='peak_intensity_velocity')
 
         # Label, Ticks and Title

@@ -180,6 +180,18 @@ class ObsData():
         """
         return pix * self.r_au_pix
 
+    def au2pix(self, au):
+        """Transform from pixel number to au
+
+        Args:
+          au(float): au
+
+        Returns:
+          pix(int): pixel number (unit: count)
+
+        """
+        return au / self.r_au_pix
+
     def asec2pix(self, asec):
         """Transform from arcsec to pixel number
 
