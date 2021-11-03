@@ -8,7 +8,6 @@
 # :Description: This code is to generate azimuthal PV diagram from ALMA data
 # ############################################################################
 
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -108,7 +107,10 @@ class AzimuthalPVDiagram():
           return_cartesian(bool): return cartesian coordinates (Default value = False)
 
         Returns:
-          2D float array: Disk corresponding radius on sky plane for 2D map 2D float array: Disk corresponding theta on sky plane for 2D map 2D float array: Disk corresponding x position on sky plane for 2D map 2D float array: Disk corresponding y position on sky plane for 2D map
+          2D float array: Disk corresponding radius on sky plane for 2D map
+          2D float array: Disk corresponding theta on sky plane for 2D map
+          2D float array: Disk corresponding x position on sky plane for 2D map
+          2D float array: Disk corresponding y position on sky plane for 2D map
 
         """
         empty_map = np.empty_like(map_2D)
@@ -208,7 +210,7 @@ class AzimuthalPVDiagram():
           intensity_array(2D float array): intensity array form PV cut result
 
         Returns:
-          peak_intensity_velocity_array(2D float array): peak intensity array
+          2D float array: peak intensity array
 
         """
         peak_intensity_velocity_list = []
@@ -218,6 +220,7 @@ class AzimuthalPVDiagram():
                 intensity_along_theta_array))[0]
             peak_intensity_velocity_list.append(velocity_array[peak_index, i])
         peak_intensity_velocity_array = np.array(peak_intensity_velocity_list)
+
         return peak_intensity_velocity_array
 
     def plot_contour_PV_diagram(self,
@@ -226,7 +229,12 @@ class AzimuthalPVDiagram():
                                 intensity_array,
                                 new_figure=True,
                                 show_peak_intensity_velocity=True,
-                                show_PV_cut_data_point=True,
+                                show_PV_cut_data_point=False,
+                                velocity_unit='km/s',
+                                show_x_axis=True,
+                                show_y_axis=True,
+                                show_legend=True,
+                                show_title=True,
                                 show_plot=True):
         """Plot contour azimuthal PV diagram from PV cut array (shape: #vel,#theta)
 
@@ -234,79 +242,118 @@ class AzimuthalPVDiagram():
           theta_array(2D float array): theta array from PV cut result
           velocity_array(2D float array): velocity array from PV cut result
           intensity_array(2D float array): intensity array form PV cut result
-          new_figure(bool): whether use new figure or not (Default value = True)
-          show_peak_intensity_velocity(bool): whether show peak intensity velocity or not (Default value = True)
-          show_PV_cut_data_point(bool): whether show PV cut data point or not (Default value = True)
-          show_plot(bool): whether show plot or not (Default value = True)
+          new_figure(bool, optional): whether use new figure or not (Default value = True)
+          show_peak_intensity_velocity(bool, optional): whether show peak intensity velocity or not (Default value = True)
+          show_PV_cut_data_point(bool, optional): whether show PV cut data point or not (Default value = True)
+          show_plot(bool, optional): whether show plot or not (Default value = True)
+          velocity_unit(bool, optional): unit displays on veolcity axis (Default value = 'km/s')
+          show_x_axis(bool, optional): whether show x axis labels (Default value = True)
+          show_y_axis(bool, optional): whether show y axis labels (Default value = True)
+          show_legend(bool, optional): whether show legend (Default value = True)
+          show_title(bool, optional):  whether show title (Default value = True)
 
         Returns:
 
         """
 
-        X, Y, Z = theta_array, velocity_array, intensity_array
-
-        # Update fontsize
-        matplotlib.rcParams.update({'font.size': 10})
-
         # Plot new figure
         if new_figure:
-            plt.figure(figsize=(18, 4))
+            plt.figure(figsize=(18, 6))
 
         # Plot contour
-        plt.contourf(X, Y, Z, cmap='Greys')
+        plt.contourf(theta_array,
+                     velocity_array,
+                     intensity_array,
+                     cmap='Greys')
 
         # Pick peak intensity velocity
         peak_intensity_velocity_array = self.get_peak_intensity_velocity_on_PV_diagram(
             velocity_array, intensity_array)
 
+        # Plot all data point from PV cut result
         if show_PV_cut_data_point:
-            plt.scatter(X,
-                        Y,
+            plt.scatter(theta_array,
+                        velocity_array,
                         c='black',
-                        s=4,
+                        s=3,
                         label='data_point_from_PV_cut',
                         alpha=0.05)
 
+        # Plot peak intensity velocity of PV cut result
         if show_peak_intensity_velocity:
-            plt.scatter(X[0],
+            plt.scatter(theta_array[0],
                         peak_intensity_velocity_array,
-                        c='yellow',
-                        s=4,
-                        label='peak_intensity_velocity')
+                        c='orange',
+                        s=3,
+                        label='peak_intensity_velocity',
+                        alpha=0.5)
 
         # Label, Ticks and Title
-        nxtick, nytick = 25, 10
-        xtick_loc = np.linspace(np.amin(X[0]), np.amax(X[0]), nxtick)
-        xtick_lab = np.around(
-            np.linspace(np.amin(X[0]), np.amax(X[0]), nxtick, endpoint=True),
-            1)
-        ytick_loc = np.linspace(np.amin(Y[:, 0]),
-                                np.amax(Y[:, 0]),
-                                nytick,
-                                endpoint=True)
-        ytick_lab = np.around(
-            np.linspace(np.amin(Y[:, 0]),
-                        np.amax(Y[:, 0]),
-                        nytick,
-                        endpoint=True), 1)
-        plt.xticks(xtick_loc, xtick_lab)
-        plt.yticks(ytick_loc, ytick_lab)
-        plt.xlabel('Theta (deg)')
-        plt.ylabel('Velocity (m/s)')
-        plt.title('Azimuthal Position-Velocity Cut Contour Diagram')
-        plt.legend(loc=1)
-        plt.grid(alpha=0.5)
+        xtick_loc = np.arange(0., 360. + 20., 20.)
+        xtick_lab = np.arange(0., 360. + 20., 20.)
+        if show_x_axis:
+            plt.xticks(xtick_loc, xtick_lab)
+            plt.xlabel('Theta (deg)')
+        else:
+            plt.xticks(xtick_loc, [' '] * len(xtick_loc))
 
+        if velocity_unit == 'km/s':
+            ytick_start = np.floor(
+                np.amin(velocity_array[:, 0]) / 1000.) * 1000.
+            ytick_end = np.ceil(np.max(velocity_array[:, 0]) / 1000.) * 1000.
+            ytick_loc = np.arange(ytick_start, ytick_end + 1000., 1000.)
+            ytick_lab = np.arange(ytick_start / 1000.,
+                                  (ytick_end + 1000.) / 1000., 1.)
+            if show_y_axis:
+                plt.ylabel('Velocity (km/s)')
+                plt.yticks(ytick_loc, ytick_lab)
+            else:
+                plt.yticks(ytick_loc, [' '] * len(ytick_loc))
+        else:
+            ytick_start = np.floor(
+                np.amin(velocity_array[:, 0]) / 1000.) * 1000.
+            ytick_end = np.ceil(np.max(velocity_array[:, 0]) / 1000.) * 1000.
+            ytick_loc = np.arange(ytick_start, ytick_end + 1000., 1000.)
+            ytick_lab = np.arange(ytick_start, ytick_end + 1000., 1000.)
+            if show_y_axis:
+                plt.ylabel('Velocity (m/s)')
+                plt.yticks(ytick_loc, ytick_lab)
+            else:
+                plt.yticks(ytick_loc, [' '] * len(ytick_loc))
+
+        plt.grid(alpha=1.0)
+
+        # Show legend
+        if show_legend:
+            leg = plt.legend(loc=1)
+            for lh in leg.legendHandles:
+                lh.set_alpha(1)
+
+        # Show title
+        if show_title:
+            plt.title('Azimuthal Position-Velocity Cut Contour Diagram')
+
+        # Show plot
         if show_plot:
             plt.show()
 
 
 class AzimuthalPVDiagramTest(AzimuthalPVDiagram):
+    """ """
     def rotate_disk_dot_to_sky_dot_test(self,
                                         max_width=50.,
                                         test_disk_pos=120.,
                                         test_radius=30.):
-        """Test rotate_disk_coord_to_sky_coord function"""
+        """Test rotate_disk_coord_to_sky_coord function
+
+        Args:
+          max_width(int, optional): max width for test space (unit: pixel) (Default value = 50.)
+          test_disk_pos(float, optional):  test disk position angle (unit: deg)(Default value = 120.)
+          test_radius(float, optional): test radius on disk (unit: pixel) (Default value = 30.)
+
+        Returns:
+
+        """
 
         # Axis for both disk coord and sky coord
         disk_axis = np.array([[max_width, -max_width, 0., 0.],
@@ -355,7 +402,19 @@ class AzimuthalPVDiagramTest(AzimuthalPVDiagram):
                                       test_ring_radius_sky_pix=30,
                                       test_offset_x_pix=10,
                                       test_offset_y_pix=10):
-        """Test set_disk_polar_to_2D_map"""
+        """Test set_disk_polar_to_2D_map
+
+        Args:
+          test_2D_map: 2D map for test  (Default value = np.ones((100,100)))
+          test_disk_pos: position angle for test (unit: deg) (Default value = 120.)
+          test_disk_inc: inclination angle for test (unit: deg) (Default value = 47.5)
+          test_ring_radius_sky_pix: ring radius for test (unit: pixel) (Default value = 30)
+          test_offset_x_pix: x offset for test (unit: pixel) (Default value = 10)
+          test_offset_y_pix: y offset for test (unit: pixel) (Default value = 10)
+
+        Returns:
+
+        """
 
         outputs = self.set_disk_polar_to_2D_map(test_2D_map,
                                                 test_disk_pos,
@@ -410,7 +469,13 @@ def generate_azimuthal_PV_diagram(cube,
                                   disk_inc,
                                   offset_x_pix,
                                   offset_y_pix,
+                                  show_PV_cut_data_point=True,
+                                  show_peak_intensity_velocity=True,
                                   new_figure=True,
+                                  show_title=True,
+                                  show_x_axis=True,
+                                  show_y_axis=True,
+                                  show_legend=True,
                                   show_plot=True):
     """Generate azimuthal PV cut from 3D cube data
 
@@ -423,11 +488,17 @@ def generate_azimuthal_PV_diagram(cube,
       disk_inc(float): inclination angle of disk (unit: deg)
       offset_x_pix(int): x-offset of disk center (unit: pixel)
       offset_y_pix(int): y-offset of disk center (unit: pixel)
-      new_figure(bool): whether use new figure or not (Default value = True)
-      show_plot(bool): whether show plot or not (Default value = True)
+      show_PV_cut_data_point(bool, optional): whether show cut datapoint (Default value = True)
+      show_peak_intensity_velocity(bool, optional): whether show peak intensity velocity (Default value = True)
+      new_figure(bool, optional): whether use new figure or not (Default value = True)
+      show_title(bool, optional):  whether show title (Default value = True)
+      show_x_axis(bool, optional): whether show x axis labels (Default value = True)
+      show_y_axis(bool, optional): whether show y axis labels (Default value = True)
+      show_legend(bool, optional): whether show legend (Default value = True)
+      show_plot(bool, optional): whether show plot or not (Default value = True)
 
     Returns:
-
+      1D array: compose in 3 2D float arrays for theta, velocity, and intensity
 
     """
 
@@ -439,10 +510,16 @@ def generate_azimuthal_PV_diagram(cube,
         outputs[0],
         outputs[1],
         outputs[2],
-        show_peak_intensity_velocity=True,
-        show_PV_cut_data_point=True,
+        show_peak_intensity_velocity=show_peak_intensity_velocity,
+        show_PV_cut_data_point=show_PV_cut_data_point,
         new_figure=new_figure,
+        show_title=show_title,
+        show_x_axis=show_x_axis,
+        show_y_axis=show_y_axis,
+        show_legend=show_legend,
         show_plot=show_plot)
+
+    return outputs
 
 
 def main():
@@ -469,9 +546,19 @@ def main():
         test_disk_pos=IM_Lup.disk_pos, test_disk_inc=IM_Lup.disk_inc)
 
     # Generate azimuthal PV diagram
-    generate_azimuthal_PV_diagram(IM_Lup.data, IM_Lup.freqax2velax(), 100, 1,
-                                  IM_Lup.disk_pos, IM_Lup.disk_inc,
-                                  IM_Lup.offset_x_pix, IM_Lup.offset_y_pix)
+    generate_azimuthal_PV_diagram(IM_Lup.data,
+                                  IM_Lup.freqax2velax(),
+                                  100,
+                                  1,
+                                  IM_Lup.disk_pos,
+                                  IM_Lup.disk_inc,
+                                  IM_Lup.offset_x_pix,
+                                  IM_Lup.offset_y_pix,
+                                  show_PV_cut_data_point=True,
+                                  show_peak_intensity_velocity=True,
+                                  show_x_axis=True,
+                                  show_y_axis=True,
+                                  show_legend=True)
 
 
 if __name__ == '__main__':

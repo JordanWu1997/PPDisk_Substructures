@@ -31,7 +31,7 @@ def generate_LOS_Keplerian_velocity_thin_disk_r(radius_pix, theta,
       aspect_ratio(float): ratio of height of disk and radius
 
     Returns:
-      vel_r_LOS(1D float array): LOS Keplerian velocity (unit: m/s)
+      1D float array: LOS Keplerian velocity (unit: m/s)
 
     """
 
@@ -58,7 +58,7 @@ def generate_LOS_Keplerian_velocity_thick_disk_r(radius_pix, theta,
       aspect_ratio(float): ratio of height of disk and radius
 
     Returns:
-      vel_r_LOS(1D float array): LOS Keplerian velocity (unit: m/s)
+      1D float array: LOS Keplerian velocity (unit: m/s)
 
     """
 
@@ -88,7 +88,7 @@ def generate_LOS_Keplerian_velocity_thick_disk_r_z(radius_pix, theta,
       aspect_ratio(float): ratio of height of disk and radius
 
     Returns:
-      vel_r_LOS(1D float array): LOS Keplerian velocity (unit: m/s)
+      1D float array: LOS Keplerian velocity (unit: m/s)
 
     """
 
@@ -110,7 +110,7 @@ def generate_LOS_Keplerian_PV_cut(disk_model,
                                   mass_star,
                                   sys_vel,
                                   aspect_ratio,
-                                  output='velocity'):
+                                  output='SI'):
     """Generate LOS Keplerian PV cut of different disk models
 
     Args:
@@ -123,7 +123,7 @@ def generate_LOS_Keplerian_PV_cut(disk_model,
       mass_star(float): central star mass (unit: solar_mass)
       sys_vel(float): systematic velocity (unit: float)
       aspect_ratio(float): ratio of height of disk and radius
-      output(str): result from velocity or channel (Default value = 'velocity')
+      output(str, optional): result from velocity or channel (Default value = 'SI')
 
     Returns:
       1D float array: PV cut from Keplerian disk model
@@ -138,10 +138,10 @@ def generate_LOS_Keplerian_PV_cut(disk_model,
         velocity_list.append(vel_LOS)
         vel_channel_list.append(vel_LOS_channel)
 
-    if output == 'velocity':
+    if output == 'SI':
         velocity_array = np.array(velocity_list)
         return velocity_array
-    if output == 'channel':
+    if output == 'chan':
         vel_channel_velocity_array = np.array(
             [velax[vc] for vc in vel_channel_list])
         return vel_channel_velocity_array
@@ -149,145 +149,193 @@ def generate_LOS_Keplerian_PV_cut(disk_model,
 
 def plot_LOS_Kepleran_PV_cut(PPDisk,
                              radius_pix,
-                             theta_n,
                              aspect_ratio,
+                             theta_n=361,
+                             theta_start=0.,
+                             theta_end=360.,
+                             plot_SI=True,
+                             plot_chan=True,
+                             plot_thin_disk_r=True,
+                             plot_thick_disk_r=True,
+                             plot_thick_disk_r_z=True,
+                             color_thin_disk_r='red',
+                             color_thick_disk_r='lime',
+                             color_thick_disk_r_z='blue',
                              new_figure=True,
+                             show_title=True,
+                             show_x_axis=True,
+                             show_y_axis=True,
+                             show_legend=True,
                              show_plot=True):
-    """ Plot LOS Keplerian PV cut diagram for different models
+    """Plot LOS Keplerian PV cut diagram for different models
 
     Args:
       PPDisk(ObsData class): Protoplanetary disk for Keplerian disk
       radius_pix(int): radius to calculate Keplerian velocity (unit: pixel)
-      theta_n: number of slices in theta direction
-      aspect_ratio: aspect ratio of Keplerian disk
-      new_figure(bool): whether use new figure or not (Default value = True)
-      show_plot(bool): whether show plot or not (Default value = True)
+      aspect_ratio(float): aspect ratio of Keplerian disk
+      theta_n(int, optional): number of slices in theta direction (Default value = 361)
+      theta_start(float, optional): start of theta direction (Default value = 0.)
+      theta_end(float, optional): end of theta direction (Default value = 360.)
+      plot_SI(bool, optional): plot velocity in SI output (Default value = True)
+      plot_chan(bool, optional): plot velocity in chan ouput (Default value = True)
+      plot_thin_disk_r(bool, optional): plot thin_disk_r model (Default value = True)
+      plot_thick_disk_r(bool, optional): plot thick_disk_r model (Default value = True)
+      plot_thick_disk_r_z(bool, optional): plot thick disk_r_z model (Default value = True)
+      color_thin_disk_r(str, optional): color for thin_disk_r model (Default value = 'red')
+      color_thick_disk_r(str, optional): color for thick_disk_r model (Default value = 'lime')
+      color_thick_disk_r_z(str, optional): color for thick disk_r_z model (Default value = 'blue')
+      new_figure(bool, optional): whether use new figure or not (Default value = True)
+      show_plot(bool, optional): whether show plot or not (Default value = True)
+      show_title(bool, optional): whether show plot or not (Default value = True)
+      show_x_axis(bool, optional): whether show x axis or not (Default value = True)
+      show_y_axis(bool, optional): whether show y axis or not (Default value = True)
+      show_legend(bool, optional): whether show legend or not (Default value = True)
 
     Returns:
 
     """
 
     # Theta list
-    thetas = np.linspace(0, 360, theta_n, endpoint=True)
-
-    # Generate Keplerian PV of different model
-    LOS_vel_thin_vel = generate_LOS_Keplerian_PV_cut(
-        generate_LOS_Keplerian_velocity_thin_disk_r,
-        PPDisk.freqax2velax(),
-        radius_pix,
-        thetas,
-        PPDisk.r_au_pix,
-        PPDisk.disk_inc,
-        PPDisk.stellar_mass,
-        PPDisk.sys_vel,
-        0.,
-        output='velocity')
-    LOS_vel_thin_chan = generate_LOS_Keplerian_PV_cut(
-        generate_LOS_Keplerian_velocity_thin_disk_r,
-        PPDisk.freqax2velax(),
-        radius_pix,
-        thetas,
-        PPDisk.r_au_pix,
-        PPDisk.disk_inc,
-        PPDisk.stellar_mass,
-        PPDisk.sys_vel,
-        0.,
-        output='channel')
-    LOS_vel_thick_vel_r = generate_LOS_Keplerian_PV_cut(
-        generate_LOS_Keplerian_velocity_thick_disk_r,
-        PPDisk.freqax2velax(),
-        radius_pix,
-        thetas,
-        PPDisk.r_au_pix,
-        PPDisk.disk_inc,
-        PPDisk.stellar_mass,
-        PPDisk.sys_vel,
-        aspect_ratio,
-        output='velocity')
-    LOS_vel_thick_chan_r = generate_LOS_Keplerian_PV_cut(
-        generate_LOS_Keplerian_velocity_thick_disk_r,
-        PPDisk.freqax2velax(),
-        radius_pix,
-        thetas,
-        PPDisk.r_au_pix,
-        PPDisk.disk_inc,
-        PPDisk.stellar_mass,
-        PPDisk.sys_vel,
-        aspect_ratio,
-        output='channel')
-    LOS_vel_thick_vel_r_z = generate_LOS_Keplerian_PV_cut(
-        generate_LOS_Keplerian_velocity_thick_disk_r_z,
-        PPDisk.freqax2velax(),
-        radius_pix,
-        thetas,
-        PPDisk.r_au_pix,
-        PPDisk.disk_inc,
-        PPDisk.stellar_mass,
-        PPDisk.sys_vel,
-        aspect_ratio,
-        output='velocity')
-    LOS_vel_thick_chan_r_z = generate_LOS_Keplerian_PV_cut(
-        generate_LOS_Keplerian_velocity_thick_disk_r_z,
-        PPDisk.freqax2velax(),
-        radius_pix,
-        thetas,
-        PPDisk.r_au_pix,
-        PPDisk.disk_inc,
-        PPDisk.stellar_mass,
-        PPDisk.sys_vel,
-        aspect_ratio,
-        output='channel')
-
+    thetas = np.linspace(theta_start, theta_end, theta_n, endpoint=True)
 
     # Plot
     if new_figure:
         plt.figure(figsize=(12, 6))
 
-    # plt.plot(thetas,
-             # LOS_vel_thin_vel,
-             # ls='-',
-             # c='r',
-             # label=r'$V_{SI}=(\frac{GM}{r^2})^\frac{1}{2}$')
-    plt.plot(thetas,
-             LOS_vel_thin_chan,
-             ls='--',
-             c='r',
-             label=r'$V_{chan}=(\frac{GM}{r^2})^\frac{1}{2}$')
-    # plt.plot(
-        # thetas,
-        # LOS_vel_thick_vel_r,
-        # ls='-',
-        # c='lime',
-        # label=
-        # r'$V_{r\_SI}=(\frac{GM}{r^2+z^2})^\frac{1}{2}(\frac{r}{(r^2+z^2)^{\frac{1}{2}}})^\frac{1}{2}$'
-    # )
-    plt.plot(
-        thetas,
-        LOS_vel_thick_chan_r,
-        ls='--',
-        c='lime',
-        label=
-        r'$V_{r\_chan}=(\frac{GM}{r^2+z^2})^\frac{1}{2}(\frac{r}{(r^2+z^2)^{\frac{1}{2}}})^\frac{1}{2}$'
-    )
-    # plt.plot(thetas,
-             # LOS_vel_thick_vel_r_z,
-             # ls='-',
-             # c='b',
-             # label=r'$V_{r\_z\_SI}=(\frac{GM}{r^2+z^2})^\frac{1}{2}$')
-    plt.plot(thetas,
-             LOS_vel_thick_chan_r_z,
-             ls='--',
-             c='b',
-             label=r'$V_{r\_z\_chan}=(\frac{GM}{r^2+z^2})^\frac{1}{2}$')
-    plt.xlabel('Theta (deg)')
-    plt.ylabel('Velocity (m/s)')
-    plt.title(
-        'Keplerian Disk Azimuthal Position-Velocity Diagram\n(r={:.1f} au ({:d} pix), z/r={:.2f}, star={:.1f} solar_mass)'
-        .format(PPDisk.pix2au(radius_pix), radius_pix, aspect_ratio,
-                PPDisk.stellar_mass))
-    plt.legend()
+    # Plot disk model PV diagram
+    if plot_SI:
+        if plot_thin_disk_r:
+            LOS_vel_thin_vel = generate_LOS_Keplerian_PV_cut(
+                generate_LOS_Keplerian_velocity_thin_disk_r,
+                PPDisk.freqax2velax(),
+                radius_pix,
+                thetas,
+                PPDisk.r_au_pix,
+                PPDisk.disk_inc,
+                PPDisk.stellar_mass,
+                PPDisk.sys_vel,
+                0.,
+                output='SI')
+            plt.plot(thetas,
+                     LOS_vel_thin_vel,
+                     ls='--',
+                     c=color_thin_disk_r,
+                     label=r'$V_{SI}=(\frac{GM}{r^2})^\frac{1}{2}$' +
+                     ', z/r={:.2f}'.format(aspect_ratio))
+        if plot_thick_disk_r:
+            LOS_vel_thick_vel_r = generate_LOS_Keplerian_PV_cut(
+                generate_LOS_Keplerian_velocity_thick_disk_r,
+                PPDisk.freqax2velax(),
+                radius_pix,
+                thetas,
+                PPDisk.r_au_pix,
+                PPDisk.disk_inc,
+                PPDisk.stellar_mass,
+                PPDisk.sys_vel,
+                aspect_ratio,
+                output='SI')
+            plt.plot(
+                thetas,
+                LOS_vel_thick_vel_r,
+                ls='--',
+                c=color_thick_disk_r,
+                label=
+                r'$V_{r\_SI}=(\frac{GM}{r^2+z^2})^\frac{1}{2}(\frac{r}{(r^2+z^2)^{\frac{1}{2}}})^\frac{1}{2}$'
+                + ', z/r={:.2f}'.format(aspect_ratio))
+        if plot_thick_disk_r_z:
+            LOS_vel_thick_vel_r_z = generate_LOS_Keplerian_PV_cut(
+                generate_LOS_Keplerian_velocity_thick_disk_r_z,
+                PPDisk.freqax2velax(),
+                radius_pix,
+                thetas,
+                PPDisk.r_au_pix,
+                PPDisk.disk_inc,
+                PPDisk.stellar_mass,
+                PPDisk.sys_vel,
+                aspect_ratio,
+                output='SI')
+            plt.plot(thetas,
+                     LOS_vel_thick_vel_r_z,
+                     ls='--',
+                     c=color_thick_disk_r_z,
+                     label=r'$V_{r\_z\_SI}=(\frac{GM}{r^2+z^2})^\frac{1}{2}$' +
+                     ', z/r={:.2f}'.format(aspect_ratio))
+    if plot_chan:
+        if plot_thin_disk_r:
+            LOS_vel_thin_chan = generate_LOS_Keplerian_PV_cut(
+                generate_LOS_Keplerian_velocity_thin_disk_r,
+                PPDisk.freqax2velax(),
+                radius_pix,
+                thetas,
+                PPDisk.r_au_pix,
+                PPDisk.disk_inc,
+                PPDisk.stellar_mass,
+                PPDisk.sys_vel,
+                0.,
+                output='chan')
+            plt.plot(thetas,
+                     LOS_vel_thin_chan,
+                     ls='--',
+                     c=color_thin_disk_r,
+                     label=r'$V_{chan}=(\frac{GM}{r^2})^\frac{1}{2}$' +
+                     ', z/r={:.2f}'.format(aspect_ratio))
+        if plot_thick_disk_r:
+            LOS_vel_thick_chan_r = generate_LOS_Keplerian_PV_cut(
+                generate_LOS_Keplerian_velocity_thick_disk_r,
+                PPDisk.freqax2velax(),
+                radius_pix,
+                thetas,
+                PPDisk.r_au_pix,
+                PPDisk.disk_inc,
+                PPDisk.stellar_mass,
+                PPDisk.sys_vel,
+                aspect_ratio,
+                output='chan')
+            plt.plot(
+                thetas,
+                LOS_vel_thick_chan_r,
+                ls='--',
+                c=color_thick_disk_r,
+                label=
+                r'$V_{r\_chan}=(\frac{GM}{r^2+z^2})^\frac{1}{2}(\frac{r}{(r^2+z^2)^{\frac{1}{2}}})^\frac{1}{2}$'
+                + ', z/r={:.2f}'.format(aspect_ratio))
+        if plot_thick_disk_r_z:
+            LOS_vel_thick_chan_r_z = generate_LOS_Keplerian_PV_cut(
+                generate_LOS_Keplerian_velocity_thick_disk_r_z,
+                PPDisk.freqax2velax(),
+                radius_pix,
+                thetas,
+                PPDisk.r_au_pix,
+                PPDisk.disk_inc,
+                PPDisk.stellar_mass,
+                PPDisk.sys_vel,
+                aspect_ratio,
+                output='chan')
+            plt.plot(
+                thetas,
+                LOS_vel_thick_chan_r_z,
+                ls='--',
+                c=color_thick_disk_r_z,
+                label=r'$V_{r\_z\_chan}=(\frac{GM}{r^2+z^2})^\frac{1}{2}$' +
+                ', z/r={:.2f}'.format(aspect_ratio))
+
+    if show_x_axis:
+        plt.xlabel('Theta (deg)')
+
+    if show_y_axis:
+        plt.ylabel('Velocity (m/s)')
+
+    if show_legend:
+        plt.legend()
+
+    if show_title:
+        plt.title(
+            'Keplerian Disk Azimuthal Position-Velocity Diagram\n(r={:.1f} au ({:d} pix), star={:.1f} solar_mass, inc={:.1f} deg)'
+            .format(PPDisk.pix2au(radius_pix), radius_pix, PPDisk.stellar_mass,
+                    PPDisk.disk_inc))
 
     if show_plot:
+        plt.grid()
         plt.show()
 
 
@@ -306,7 +354,7 @@ def generate_Keplerian_disk_PV_and_plot_test():
                          offset_x=-1.5,
                          offset_y=1.0)
 
-    plot_LOS_Kepleran_PV_cut(IM_Lup, 100, 361, 1.0)
+    plot_LOS_Kepleran_PV_cut(IM_Lup, 100, 1.0)
 
 
 def main():

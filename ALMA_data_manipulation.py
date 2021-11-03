@@ -21,19 +21,20 @@ class ObsData():
     c = const.c.value
     M_s = const.M_sun.value
 
-    def __init__(self, fitsfile, dist):
+    def __init__(self, fitsfile, dist_pc, name='PPDisk'):
         data = fits.getdata(fitsfile)[0, :, :, :]
         header = fits.getheader(fitsfile)
         bmaj_deg = float(abs(header['BMAJ']))
         bmin_deg = float(abs(header['BMIN']))
         r_deg_pix = float(abs(header['CDELT2']))
         r_asec_pix = self.deg2asec(r_deg_pix)
-        r_au_pix = self.asec2au(r_asec_pix, dist)
+        r_au_pix = self.asec2au(r_asec_pix, dist_pc)
 
         self.fitsfile = fitsfile
+        self.name = name
         self.data = data
         self.header = header
-        self.dist = dist
+        self.dist_pc = dist_pc
         self.bmaj_deg = bmaj_deg
         self.bmin_deg = bmin_deg
         self.r_deg_pix = r_deg_pix
@@ -105,7 +106,7 @@ class ObsData():
           prop(float): property to be rounded to pixel(integer)
 
         Returns:
-          pixel number(int): pixel number
+          int: pixel number
 
         """
         return np.rint(prop).astype(int)
@@ -117,7 +118,7 @@ class ObsData():
           axis(int, optional): axis of frequency (Default value = 3)
 
         Returns:
-          velax(float): velocity axis (unit: m/s)
+          float: velocity axis (unit: m/s)
 
         """
         x0 = self.header['CRVAL{:d}'.format(axis)]
@@ -132,6 +133,22 @@ class ObsData():
 
         return velax
 
+    def get_channel_width(self, unit='velocity', axis=3):
+        """
+
+        Args:
+          unit:  (Default value = 'velocity')
+          axis:  (Default value = 3)
+
+        Returns:
+          float: channel width
+
+        """
+        if unit == 'velocity':
+            return abs(self.freqax2velax()[1] - self.freqax2velax()[0])
+        else:
+            return abs(self.header['CDELT{:d}'.format(axis)])
+
     @staticmethod
     def vel2chan(vel, velax):
         """Transform from velocity to channel index
@@ -141,7 +158,7 @@ class ObsData():
           velax(1D float array): velocity axis (unit: m/s)
 
         Returns:
-          chan_index(int): velocity channel index
+          int: velocity channel index
 
         """
         chan_index_list = np.where(velax >= vel)[0]
@@ -163,7 +180,7 @@ class ObsData():
           pix(int): pixel number (unit: count)
 
         Returns:
-          arcsec(float): arcsec
+          float: arcsec
 
         """
         return pix * self.r_asec_pix
@@ -175,7 +192,7 @@ class ObsData():
           pix(int): pixel number (unit: count)
 
         Returns:
-          au(float): au
+          float: au
 
         """
         return pix * self.r_au_pix
@@ -187,7 +204,7 @@ class ObsData():
           au(float): au
 
         Returns:
-          pix(int): pixel number (unit: count)
+          int: pixel number (unit: count)
 
         """
         return au / self.r_au_pix
@@ -199,10 +216,10 @@ class ObsData():
           asec(float): arcsec (unit: arcsec)
 
         Returns:
-          pixel number
+          int: pixel number
 
         """
-        return round(asec / self.r_asec_pix)
+        return self.round_to_pix(asec / self.r_asec_pix)
 
     @staticmethod
     def deg2asec(deg):
@@ -212,7 +229,7 @@ class ObsData():
           deg(float): degree (unit: deg)
 
         Returns:
-          arcsec
+          float: arcsec
 
         """
         return deg * 3600.
@@ -226,7 +243,7 @@ class ObsData():
           dist_pc(float): distance to observing object (unit: pc)
 
         Returns:
-          au
+          float: au
 
         """
         return dist_pc * asec
@@ -238,7 +255,8 @@ def main():
     # Load ALMA data
     IM_Lup = ObsData(
         '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
-        158.)
+        158.,
+        name='IM_Lup')
     IM_Lup.stellar_property(1.12, 4250)
     IM_Lup.disk_property(47.5,
                          144.5,

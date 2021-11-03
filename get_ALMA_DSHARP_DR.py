@@ -22,10 +22,11 @@ def find_label(input_list, label):
     """
 
     Args:
-      input_list:
-      label:
+      input_list(1D list): input list
+      label(str): label to filter
 
     Returns:
+      1D list: label filtered input list
 
     """
     return [inp for inp in input_list if label in inp]
@@ -35,10 +36,11 @@ def add_data_archive(input_list, data_archive):
     """
 
     Args:
-      input_list:
-      data_archive:
+      input_list(1D list): input list
+      data_archive(str): location of storage
 
     Returns:
+      1D list: data archive added input list
 
     """
     return [data_archive + inp for inp in input_list]
@@ -48,19 +50,20 @@ def find_target(input_list, label='continuum', sep='_', target_id=0):
     """
 
     Args:
-      input_list:
-      sep: Default value = '_')
-      target_id: Default value = 0)
-      label:  (Default value = 'continuum')
+      input_list(1D list): input list
+      sep(str): separation (Default value = '_')
+      target_id: target index (Default value = 0)
+      label: label of data (Default value = 'continuum')
 
     Returns:
+      1D list: joint target list
 
     """
     return [inp.split(sep)[target_id] for inp in input_list]
 
 
 def main():
-    """ """
+    """Main function in get_ALMA_DSHARP_DR.py"""
     data_archive = 'https://almascience.eso.org/almadata/lp/DSHARP/images/'
     html = urlopen(data_archive)
     bsObj = BeautifulSoup(html, 'html.parser')
