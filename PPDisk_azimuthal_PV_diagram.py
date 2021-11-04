@@ -106,7 +106,9 @@ def plot_ring_PV_diagram(
 
     if show_sub_title:
         plt.title(
-            'Azimuthal Position-Velocity Diagram\n(r_center={:.1f} au ({:d} pix), r_width={:.1f} au ({:d} pix), star={:.1f} solar_mass)'
+            'Azimuthal Position-Velocity Diagram\n'\
+            '(r_center={:.1f} au ({:d} pix), r_width={:.1f} au ({:d} pix),'\
+            ' star={:.1f} solar_mass)'
             .format(PPDisk.pix2au(r_center), r_center, PPDisk.pix2au(r_width),
                     r_width, PPDisk.stellar_mass))
 
@@ -154,7 +156,8 @@ def main():
     matplotlib.rcParams.update({'font.size': 14})
     plt.subplots(11, 1, figsize=(18, 28))
     for i, (r_center, r_width) in enumerate(zip(r_center_list, r_width_list)):
-        print(i)
+        print('{:d}, r_center={:d} pix, r_width={:d} pix'.format(
+            i, r_center, r_width))
         if i != len(r_center_list) - 1:
             show_sub_axis_flag = False
         else:
@@ -178,12 +181,14 @@ def main():
                    r_width))
 
     plt.suptitle(
-        "{} Azimuthal Position-Velocity Diagram\n(beam={:.1f} au x {:.1f} au, channel_width={:.1f} m/s)"
+        '{} Azimuthal Position-Velocity Diagram\n'\
+        '(beam={:.1f} au x {:.1f} au, channel_width={:.1f} m/s)\n'\
+        '(systematic_velocity={:.1f} m/s)'\
         .format(
             PPDisk.name,
             PPDisk.asec2au(PPDisk.deg2asec(PPDisk.bmaj_deg), PPDisk.dist_pc),
             PPDisk.asec2au(PPDisk.deg2asec(PPDisk.bmin_deg), PPDisk.dist_pc),
-            PPDisk.get_channel_width()))
+            PPDisk.get_channel_width(), PPDisk.sys_vel))
 
     figure, axe = plt.gcf(), plt.gca()
     lines, labels = axe.get_legend_handles_labels()

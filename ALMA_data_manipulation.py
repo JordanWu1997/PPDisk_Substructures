@@ -26,6 +26,7 @@ class ObsData():
         header = fits.getheader(fitsfile)
         bmaj_deg = float(abs(header['BMAJ']))
         bmin_deg = float(abs(header['BMIN']))
+        bpa_deg = float(abs(header['BPA']))
         r_deg_pix = float(abs(header['CDELT2']))
         r_asec_pix = self.deg2asec(r_deg_pix)
         r_au_pix = self.asec2au(r_asec_pix, dist_pc)
@@ -37,6 +38,7 @@ class ObsData():
         self.dist_pc = dist_pc
         self.bmaj_deg = bmaj_deg
         self.bmin_deg = bmin_deg
+        self.bpa_deg = bpa_deg
         self.r_deg_pix = r_deg_pix
         self.r_asec_pix = r_asec_pix
         self.r_au_pix = r_au_pix
