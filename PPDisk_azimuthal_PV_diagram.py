@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
 # ############################################################################
@@ -10,10 +10,12 @@
 
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 
 from ALMA_data_manipulation import ObsData
 from azimuthal_PV_diagram import generate_azimuthal_PV_diagram
-from generate_Keplerian_disk_PV import *
+from generate_Keplerian_disk_PV import plot_LOS_Kepleran_PV_cut
+from azimuthal_PV_diagram import AzimuthalPVDiagram
 
 
 def plot_ring_PV_diagram(
@@ -74,15 +76,32 @@ def plot_ring_PV_diagram(
                                   show_plot=show_plot)
 
     if plot_planet_loc:
-        planet_pos_on_disk_axis = 360. - (PPDisk.disk_pos +
-                                          PPDisk.planet_pos[0])
-        plt.axvline(
-            planet_pos_on_disk_axis,
-            c='k',
-            ls='-',
-            label='planet candidate PA\n(r={:.1f} au ({:d} pix))'.format(
-                PPDisk.asec2au(PPDisk.planet_sep[0], PPDisk.dist_pc),
-                int(PPDisk.asec2pix(PPDisk.planet_sep[0]))))
+        for planet_pos, planet_sep in zip(PPDisk.planet_pos,
+                                          PPDisk.planet_sep):
+            planet_pos_on_disk_axis = 360. - (PPDisk.disk_pos +
+                                              PPDisk.planet_pos)
+
+            if abs(r_center -
+                   PPDisk.au2pix(PPDisk.asec2au(planet_sep, PPDisk.dist_pc))
+                   ) <= r_width / 2:
+                plt.axvline(
+                    planet_pos_on_disk_axis,
+                    c='r',
+                    ls='-',
+                    label=
+                    'planet candidate PA\n@ planet location\n(r={:.1f} au ({:d} pix))'
+                    .format(
+                        PPDisk.asec2au(PPDisk.planet_sep[0], PPDisk.dist_pc),
+                        int(PPDisk.asec2pix(PPDisk.planet_sep[0]))))
+            else:
+                plt.axvline(
+                    planet_pos_on_disk_axis,
+                    c='k',
+                    ls='-',
+                    label='planet candidate PA\n(r={:.1f} au ({:d} pix))'.
+                    format(
+                        PPDisk.asec2au(PPDisk.planet_sep[0], PPDisk.dist_pc),
+                        int(PPDisk.asec2pix(PPDisk.planet_sep[0]))))
 
     for aspect_ratio, color in zip(aspect_ratio_list, color_list):
         plot_LOS_Kepleran_PV_cut(PPDisk,
@@ -130,7 +149,7 @@ def plot_ring_PV_diagram(
 def main():
     """Main function in PPDisk_azimuthal_PV_diagram.py"""
 
-    # Load ALMA_observation data
+    # IM Lup (Load ALMA_observation data)
     PPDisk = ObsData(
         '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
         158.,
@@ -148,23 +167,23 @@ def main():
     r_center_list = [
         ObsData.round_to_pix(PPDisk.au2pix(PPDisk.gap_location))[0] +
         ObsData.round_to_pix(PPDisk.au2pix(PPDisk.gap_width))[0] * i
-        for i in range(-5, 6)
+        for i in range(-5, 10)
     ]
     r_width_list = [ObsData.round_to_pix(PPDisk.au2pix(PPDisk.gap_width))[0]
                     ] * len(r_center_list)
 
-    matplotlib.rcParams.update({'font.size': 14})
-    plt.subplots(11, 1, figsize=(18, 28))
+    matplotlib.rcParams.update({'font.size': 12})
+    plt.subplots(len(r_center_list), 1, figsize=(18, 2.1 * len(r_center_list)))
     for i, (r_center, r_width) in enumerate(zip(r_center_list, r_width_list)):
         print('{:d}, r_center={:d} pix, r_width={:d} pix'.format(
             i, r_center, r_width))
+
         if i != len(r_center_list) - 1:
             show_sub_axis_flag = False
         else:
             show_sub_axis_flag = True
 
         plt.subplot(len(r_center_list), 1, i + 1)
-        # plt.subplots_adjust(left=0.05, right=0.82)
         plot_ring_PV_diagram(PPDisk,
                              r_center,
                              r_width,
@@ -175,10 +194,24 @@ def main():
                              show_sub_y_axis=True,
                              show_sub_title=False,
                              show_plot=False)
-        plt.title(
-            'r_center={:.1f} au ({:d} pix), r_width={:.1f} au ({:d} pix)'.
-            format(PPDisk.pix2au(r_center), r_center, PPDisk.pix2au(r_width),
-                   r_width))
+
+        for gap_location, gap_width in zip(PPDisk.gap_location,
+                                           PPDisk.gap_width):
+            if abs(r_center - PPDisk.au2pix(gap_location)) <= r_width / 2:
+                title_obj = plt.title(
+                    'r_center={:.1f} au ({:d} pix), r_width={:.1f} au ({:d} pix)'\
+                    '@ gap (center={:.1f} au ({:d} pix), width={:.1f} au ({:d} pix))'
+                    .format(PPDisk.pix2au(r_center), r_center,
+                            PPDisk.pix2au(r_width), r_width,
+                            gap_location, ObsData.round_to_pix(PPDisk.au2pix(gap_location)),
+                            gap_width, ObsData.round_to_pix(PPDisk.au2pix(gap_width))
+                            ))
+                plt.setp(title_obj, color='r')
+            else:
+                plt.title(
+                    'r_center={:.1f} au ({:d} pix), r_width={:.1f} au ({:d} pix)'
+                    .format(PPDisk.pix2au(r_center), r_center,
+                            PPDisk.pix2au(r_width), r_width))
 
     plt.suptitle(
         '{} Azimuthal Position-Velocity Diagram\n'\
@@ -195,6 +228,26 @@ def main():
     plt.figlegend(lines, labels, ncol=1, bbox_to_anchor=(0.98, 0.98))
 
     plt.savefig('{}_azimuthal_PV_diagram.pdf'.format(PPDisk.name))
+
+    # Plot cut location
+    cut_ring_array = np.zeros(PPDisk.data[0].shape)
+    azimuthal_PV_diagram = AzimuthalPVDiagram()
+    for i, (r_center, r_width) in enumerate(zip(r_center_list, r_width_list)):
+        print('{:d}, r_center={:d} pix, r_width={:d} pix'.format(
+            i, r_center, r_width))
+        radii, _ = azimuthal_PV_diagram.set_disk_polar_to_2D_map(
+            PPDisk.data[0], PPDisk.disk_pos, PPDisk.disk_inc,
+            PPDisk.offset_x_pix, PPDisk.offset_y_pix)
+        cut_ring_array[abs(radii - r_center) <= r_width / 2.] = r_center
+
+    matplotlib.rcParams.update({'font.size': 12})
+    plt.figure()
+    plt.imshow(cut_ring_array, origin='lower', cmap="gray")
+    ax = plt.gca()
+    ax.set_xlim(1000 - 200, 1000 + 200)
+    ax.set_ylim(1000 - 200, 1000 + 200)
+    plt.colorbar()
+    plt.show()
 
 
 if __name__ == '__main__':

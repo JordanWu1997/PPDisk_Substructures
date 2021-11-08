@@ -11,6 +11,7 @@
 # ############################################################################
 
 import aplpy
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
@@ -101,7 +102,7 @@ def generate_mom1_map(fitsfile, chan_start, chan_end, mask=None):
             .format(fitsfile, chan_start, chan_end, mask))
 
 
-def plot_mom0_map(fitsfile):
+def aplpy_plot_mom0_map(fitsfile):
     """Plot moment 0 map by Aplpy
 
     Args:
@@ -117,7 +118,7 @@ def plot_mom0_map(fitsfile):
     plt.show()
 
 
-def plot_mom1_map(fitsfile):
+def aplpy_plot_mom1_map(fitsfile):
     """
 
     Args:
@@ -135,39 +136,63 @@ def plot_mom1_map(fitsfile):
     plt.show()
 
 
+def imshow_mom_map(fitsfile, cmap="coolwarm"):
+    """
+
+    Args:
+      fitsfile(str): moment map file
+
+    Returns:
+
+    """
+    mom_map = fits.getdata(fitsfile)
+    matplotlib.rcParams.update({'font.size': 12})
+    plt.imshow(mom_map, cmap=cmap)
+    ax = plt.gca()
+    ax.set_xlim(1000 - 200, 1000 + 200)
+    ax.set_ylim(1000 - 200, 1000 + 200)
+    plt.colorbar()
+    plt.show()
+
+
 def main():
     """Main function in generate_moment_map.py"""
 
-    IM_Lup = ObsData(
+    PPDisk = ObsData(
         '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
         158.,
         name='IM_Lup')
-    IM_Lup.stellar_property(1.12, 4250)
-    IM_Lup.disk_property(47.5,
+    PPDisk.stellar_property(1.12, 4250)
+    PPDisk.disk_property(47.5,
                          144.5,
                          np.array([117.]),
                          np.array([117. * 0.13]),
                          offset_x=-1.5,
                          offset_y=1.0)
-    IM_Lup.planet_property(np.array([69.]), np.array([0.77]))
+    PPDisk.planet_property(np.array([69.]), np.array([0.77]))
 
-    disk_mask, mask_name = generate_disk_mask(IM_Lup, 400)
+    disk_mask, mask_name = generate_disk_mask(PPDisk, 400)
 
     if not path.isfile(
             '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M0.fits'
     ):
-        generate_mom0_map(IM_Lup.fitsfile, 12, 45)
+        generate_mom0_map(PPDisk.fitsfile, 12, 45)
     if not path.isfile(
             '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M1.fits'
     ):
-        generate_mom1_map(IM_Lup.fitsfile,
+        generate_mom1_map(PPDisk.fitsfile,
                           12,
                           45,
                           mask='./{}'.format(mask_name))
 
-    plot_mom0_map(
+    imshow_mom_map(
+        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M0.fits',
+        cmap="inferno")
+    imshow_mom_map(
+        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M1.fits')
+    aplpy_plot_mom0_map(
         '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M0.fits')
-    plot_mom1_map(
+    aplpy_plot_mom1_map(
         '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M1.fits')
 
 
