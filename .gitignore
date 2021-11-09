@@ -2,5 +2,6 @@
 /__pycache__
 *.pyc
 /.ipynb_checkpoints
+/PPDisk_Azimuthal_PV_diagram/*.pdf
 /Result
 /TODO
