@@ -34,7 +34,7 @@ def main():
         name='HD_97048')
     PPDisk.stellar_property(2.4, 4750)
     PPDisk.disk_property(-38.,
-                         185.,
+                         181.,
                          np.array([130.]),
                          np.array([130. * 12 / 38]),
                          offset_x=0.0,
@@ -50,33 +50,43 @@ def main():
     r_width_list = [ObsData.round_to_pix(PPDisk.au2pix(PPDisk.gap_width))[0]
                     ] * len(r_center_list)
 
-    # PLot cut ring for visualization
-    # ref_2D_data = fits.getdata('/mazu/users/jordan/PPDisk_Project/Pinte_DR/'\
-                             # 'HD_97048_b7_continuum_centered_selfcal_manmask_briggs.image.fits')[0, 0]
+    # Plot coord transformation
     ref_2D_data = fits.getdata('/mazu/users/jordan/PPDisk_Project/Pinte_DR/'\
-                             'HD_97048_13CO32_briggs_selfcal_nocontsub.image_M1.fits')
-
+                             'HD_97048_b7_continuum_centered_selfcal_manmask_briggs.image.fits')[0, 0]
     azimuthal_PV_diagram_test = AzimuthalPVDiagramTest()
     azimuthal_PV_diagram_test.set_disk_polar_to_2D_map_test(
         test_2D_map=ref_2D_data,
         test_disk_pos=PPDisk.disk_pos,
         test_disk_inc=PPDisk.disk_inc,
-        test_ring_radius_sky_pix=20,
+        test_ring_radius_sky_pix=200,
         test_offset_x_pix=PPDisk.offset_x_pix,
         test_offset_y_pix=PPDisk.offset_y_pix)
 
+    # PLot cut ring for visualization
+    ref_2D_data = fits.getdata('/mazu/users/jordan/PPDisk_Project/Pinte_DR/'\
+                             'HD_97048_b7_continuum_centered_selfcal_manmask_briggs.image.fits')[0, 0]
     plot_cut_ring(PPDisk,
                   r_center_list,
                   r_width_list,
                   ref_2D_data=ref_2D_data,
                   ref_cmap='inferno')
 
+    # PLot cut ring for visualization
+    ref_2D_data = fits.getdata('/mazu/users/jordan/PPDisk_Project/Pinte_DR/'\
+                             'HD_97048_13CO32_briggs_selfcal_nocontsub.image_M1.fits')
+    plot_cut_ring(PPDisk,
+                  r_center_list,
+                  r_width_list,
+                  ref_2D_data=ref_2D_data,
+                  ref_cmap='inferno')
+
+
     # Plot sequential ring PV diagram
     plot_sequential_ring_PV_diagram(PPDisk,
                                     r_center_list,
                                     r_width_list,
-                                    chan_start=55,
-                                    chan_end=-55,
+                                    chan_start=50,
+                                    chan_end=-50,
                                     save=True)
 
 
