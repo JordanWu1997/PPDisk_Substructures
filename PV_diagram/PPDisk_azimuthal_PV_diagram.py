@@ -8,15 +8,19 @@
 # :Description: This code is for ALMA protoplanetary disk data PV cut diagram
 # ############################################################################
 
+import sys
+
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
 
+sys.path.append('../maps/')
 from ALMA_data_manipulation import ObsData
-from azimuthal_PV_diagram import generate_azimuthal_PV_diagram
+
+from azimuthal_PV_diagram import (AzimuthalPVDiagram,
+                                  generate_azimuthal_PV_diagram)
 from generate_Keplerian_disk_PV import plot_LOS_Kepleran_PV_cut
-from azimuthal_PV_diagram import AzimuthalPVDiagram
 
 
 def plot_ring_PV_diagram(
@@ -173,7 +177,8 @@ def plot_cut_ring(PPDisk,
     if ref_2D_data is None:
         cut_ring_array = np.zeros(PPDisk.data[0].shape)
         azimuthal_PV_diagram = AzimuthalPVDiagram()
-        for i, (r_center, r_width) in enumerate(zip(r_center_list, r_width_list)):
+        for i, (r_center,
+                r_width) in enumerate(zip(r_center_list, r_width_list)):
             print('{:d}, r_center={:d} pix, r_width={:d} pix'.format(
                 i, r_center, r_width))
             radii, _ = azimuthal_PV_diagram.set_disk_polar_to_2D_map(
@@ -197,7 +202,8 @@ def plot_cut_ring(PPDisk,
     else:
         cut_ring_array = np.zeros(ref_2D_data.shape)
         azimuthal_PV_diagram = AzimuthalPVDiagram()
-        for i, (r_center, r_width) in enumerate(zip(r_center_list, r_width_list)):
+        for i, (r_center,
+                r_width) in enumerate(zip(r_center_list, r_width_list)):
             print('{:d}, r_center={:d} pix, r_width={:d} pix'.format(
                 i, r_center, r_width))
             radii, _ = azimuthal_PV_diagram.set_disk_polar_to_2D_map(
@@ -320,10 +326,7 @@ def main():
     """Main function in PPDisk_azimuthal_PV_diagram.py"""
 
     # IM Lup (Load ALMA_observation data)
-    PPDisk = ObsData(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
-        158.,
-        name='IM_Lup')
+    PPDisk = ObsData('../maps/IMLup_CO.fits', 158., name='IM_Lup')
     PPDisk.stellar_property(1.12, 4250)
     PPDisk.disk_property(47.5,
                          144.5,
@@ -343,8 +346,7 @@ def main():
                     ] * len(r_center_list)
 
     # PLot cut ring for visualization
-    ref_2D_data = fits.getdata(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M1.fits')
+    ref_2D_data = fits.getdata('../maps/IMLup_CO_M1.fits')
     plot_cut_ring(PPDisk, r_center_list, r_width_list, ref_2D_data=ref_2D_data)
 
     # Plot sequential ring PV diagram

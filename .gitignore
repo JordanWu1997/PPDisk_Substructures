@@ -1,7 +1,9 @@
 # .gitignore
-/__pycache__
 *.pyc
 /.ipynb_checkpoints
-/PPDisk_Azimuthal_PV_diagram/*.pdf
+/PPDisk/*.pdf
 /Result
 /TODO
+/__pycache__
+/maps/*.fits
+/maps/*.pdf

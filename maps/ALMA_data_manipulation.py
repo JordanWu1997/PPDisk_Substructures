@@ -255,10 +255,7 @@ def main():
     """Main functions in ALMA_data_manipulation.py"""
 
     # Load ALMA data
-    IM_Lup = ObsData(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
-        158.,
-        name='IM_Lup')
+    IM_Lup = ObsData('./IMLup_CO.fits', 158., name='IM_Lup')
     IM_Lup.stellar_property(1.12, 4250)
     IM_Lup.disk_property(47.5,
                          144.5,

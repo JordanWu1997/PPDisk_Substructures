@@ -10,9 +10,8 @@
 
 from sys import path
 
-path.append(
-    '/mazu/users/jordan/PPDisk_Project/Python_Package/Source_Code/PPDisk_Substructures'
-)
+path.append('../PV_diagram/')
+path.append('../maps/')
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -29,7 +28,7 @@ def main():
 
     # HD 97048 (Load ALMA_observation data from Pinte)
     PPDisk = ObsData(
-        '/mazu/users/jordan/PPDisk_Project/Pinte_DR/HD_97048_13CO32_briggs_selfcal_nocontsub.image.fits',
+        '../maps/HD_97048_13CO32_briggs_selfcal_nocontsub.image.fits',
         185.,
         name='HD_97048')
     PPDisk.stellar_property(2.4, 4750)
@@ -51,8 +50,9 @@ def main():
                     ] * len(r_center_list)
 
     # Plot coord transformation
-    ref_2D_data = fits.getdata('/mazu/users/jordan/PPDisk_Project/Pinte_DR/'\
-                             'HD_97048_b7_continuum_centered_selfcal_manmask_briggs.image.fits')[0, 0]
+    ref_2D_data = fits.getdata(
+        '../maps/HD_97048_b7_continuum_centered_selfcal_manmask_briggs.image.fits'
+    )[0, 0]
     azimuthal_PV_diagram_test = AzimuthalPVDiagramTest()
     azimuthal_PV_diagram_test.set_disk_polar_to_2D_map_test(
         test_2D_map=ref_2D_data,
@@ -63,8 +63,9 @@ def main():
         test_offset_y_pix=PPDisk.offset_y_pix)
 
     # PLot cut ring for visualization
-    ref_2D_data = fits.getdata('/mazu/users/jordan/PPDisk_Project/Pinte_DR/'\
-                             'HD_97048_b7_continuum_centered_selfcal_manmask_briggs.image.fits')[0, 0]
+    ref_2D_data = fits.getdata(
+        '../maps/HD_97048_b7_continuum_centered_selfcal_manmask_briggs.image.fits'
+    )[0, 0]
     plot_cut_ring(PPDisk,
                   r_center_list,
                   r_width_list,
@@ -72,14 +73,13 @@ def main():
                   ref_cmap='inferno')
 
     # PLot cut ring for visualization
-    ref_2D_data = fits.getdata('/mazu/users/jordan/PPDisk_Project/Pinte_DR/'\
-                             'HD_97048_13CO32_briggs_selfcal_nocontsub.image_M1.fits')
+    ref_2D_data = fits.getdata(
+        '../maps/HD_97048_13CO32_briggs_selfcal_nocontsub.image_M1.fits')
     plot_cut_ring(PPDisk,
                   r_center_list,
                   r_width_list,
                   ref_2D_data=ref_2D_data,
                   ref_cmap='inferno')
-
 
     # Plot sequential ring PV diagram
     plot_sequential_ring_PV_diagram(PPDisk,

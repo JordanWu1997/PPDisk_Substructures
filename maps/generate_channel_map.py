@@ -81,20 +81,17 @@ def plot_single_channel(fitsfile,
         sub.scalebar.set_color('k')
     sub.image.set_alpha(alpha)
 
-    if bmaj_deg != 0:
-        pass
-        # sub._header.update({'BMAJ': bmaj_deg})
-        # sub._header.update({'BMIN': bmin_deg})
-        # sub._header.update({'BPA': bpa_deg})
-        # sub.add_beam()
-
     return sub
 
 
-def plot_4x4_channel(PPDisk, chan_start=0):
+def plot_4x4_channel(PPDisk,
+                     chan_start=0,
+                     filetype='pdf',
+                     line='12CO J=2-1',
+                     vmax=0.013,
+                     vmin=-0.006):
 
     fig = plt.figure(figsize=(20, 20))
-
     vel_ms_axis = PPDisk.freqax2velax()
     for i in range(chan_start, chan_start + 16):
         print('channel = {:d}'.format(i))
@@ -113,8 +110,8 @@ def plot_4x4_channel(PPDisk, chan_start=0):
                                    hide_Dec=hide_Dec_flag,
                                    slices=[i + 1, 0],
                                    dim=[0, 1],
-                                   M=0.013,
-                                   m=-0.006,
+                                   M=vmax,
+                                   m=vmin,
                                    bmaj_deg=PPDisk.bmaj_deg,
                                    bmin_deg=PPDisk.bmin_deg,
                                    bpa_deg=PPDisk.bpa_deg)
@@ -123,17 +120,14 @@ def plot_4x4_channel(PPDisk, chan_start=0):
                        size='x-large')
 
     plt.subplots_adjust(wspace=0.05, hspace=0.1)
-    plt.suptitle("IMLup 12CO J=2-1 Channel Map", fontsize=20)
-    fig.savefig('{}_chan_map_{:2d}_{:2d}.pdf'.format(PPDisk.name, chan_start,
-                                                     chan_start + 16),
+    plt.suptitle("{} {} Channel Map".format(PPDisk.name, line), fontsize=20)
+    fig.savefig('{}_chan_map_{:2d}_{:2d}.{}'.format(PPDisk.name, chan_start,
+                                                    chan_start + 16, filetype),
                 bbox_inches='tight')
 
 
 def main():
-    IM_Lup = ObsData(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
-        158.,
-        name='IM_Lup')
+    IM_Lup = ObsData('./IMLup_CO.fits', 158., name='IM_Lup')
     IM_Lup.stellar_property(1.12, 4250)
     IM_Lup.disk_property(47.5,
                          144.5,

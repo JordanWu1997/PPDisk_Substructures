@@ -8,10 +8,13 @@
 # :Description: This code is for Keplerian disk PV cut diagram
 # ############################################################################
 
+import sys
+
 import astropy.constants as const
 import matplotlib.pyplot as plt
 import numpy as np
 
+sys.path.append('../maps/')
 from ALMA_data_manipulation import ObsData
 
 
@@ -330,9 +333,9 @@ def plot_LOS_Kepleran_PV_cut(PPDisk,
 
     if show_title:
         plt.title(
-            'Keplerian Disk Azimuthal Position-Velocity Diagram\n(r={:.1f} au ({:d} pix), star={:.1f} solar_mass, inc={:.1f} deg)'
-            .format(PPDisk.pix2au(radius_pix), radius_pix, PPDisk.stellar_mass,
-                    PPDisk.disk_inc))
+            '{} Keplerian Disk Azimuthal Position-Velocity Diagram\n(r={:.1f} au ({:d} pix), star={:.1f} solar_mass, inc={:.1f} deg)'
+            .format(PPDisk.name, PPDisk.pix2au(radius_pix), radius_pix,
+                    PPDisk.stellar_mass, PPDisk.disk_inc))
 
     if show_plot:
         plt.grid()
@@ -343,9 +346,7 @@ def generate_Keplerian_disk_PV_and_plot_test():
     """Test plot_LOS_Kepleran_PV_cut for different disk models"""
 
     # Load ALMA data
-    IM_Lup = ObsData(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
-        158.)
+    IM_Lup = ObsData('../maps/IMLup_CO.fits', 158., name='IM_Lup')
     IM_Lup.stellar_property(1.12, 4250)
     IM_Lup.disk_property(47.5,
                          144.5,

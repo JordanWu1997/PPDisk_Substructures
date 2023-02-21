@@ -10,15 +10,19 @@
 #               latest/user/command_line.html]
 # ############################################################################
 
+import sys
+from os import path, system
+
 import aplpy
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
-from os import system, path
+
+sys.path.append('../PV_diagram/')
+from azimuthal_PV_diagram import AzimuthalPVDiagram
 
 from ALMA_data_manipulation import ObsData
-from azimuthal_PV_diagram import AzimuthalPVDiagram
 
 
 def generate_disk_mask(PPDisk, radius_pix, save_mask=True):
@@ -158,10 +162,7 @@ def imshow_mom_map(fitsfile, cmap="coolwarm"):
 def main():
     """Main function in generate_moment_map.py"""
 
-    PPDisk = ObsData(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
-        158.,
-        name='IM_Lup')
+    PPDisk = ObsData('./IMLup_CO.fits', 158., name='IM_Lup')
     PPDisk.stellar_property(1.12, 4250)
     PPDisk.disk_property(47.5,
                          144.5,
@@ -172,28 +173,18 @@ def main():
     PPDisk.planet_property(np.array([69.]), np.array([0.77]))
 
     disk_mask, mask_name = generate_disk_mask(PPDisk, 400)
-
-    if not path.isfile(
-            '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M0.fits'
-    ):
+    if not path.isfile('./IMLup_CO_M0.fits'):
         generate_mom0_map(PPDisk.fitsfile, 12, 45)
-    if not path.isfile(
-            '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M1.fits'
-    ):
+    if not path.isfile('./IMLup_CO_M1.fits'):
         generate_mom1_map(PPDisk.fitsfile,
                           12,
                           45,
                           mask='./{}'.format(mask_name))
 
-    imshow_mom_map(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M0.fits',
-        cmap="inferno")
-    imshow_mom_map(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M1.fits')
-    aplpy_plot_mom0_map(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M0.fits')
-    aplpy_plot_mom1_map(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M1.fits')
+    imshow_mom_map('./IMLup_CO_M0.fits', cmap="inferno")
+    imshow_mom_map('./IMLup_CO_M1.fits')
+    aplpy_plot_mom0_map('./IMLup_CO_M0.fits')
+    aplpy_plot_mom1_map('./IMLup_CO_M1.fits')
 
 
 if __name__ == '__main__':

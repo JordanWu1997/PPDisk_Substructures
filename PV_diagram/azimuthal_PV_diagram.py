@@ -8,9 +8,12 @@
 # :Description: This code is to generate azimuthal PV diagram from ALMA data
 # ############################################################################
 
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 
+sys.path.append('../maps')
 from ALMA_data_manipulation import ObsData
 
 
@@ -526,9 +529,7 @@ def main():
     """Main functions in AzimuthalPVDiagram.py"""
 
     # Load ALMA data
-    IM_Lup = ObsData(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
-        158.)
+    IM_Lup = ObsData('../maps/IMLup_CO.fits', 158.)
     IM_Lup.stellar_property(1.12, 4250)
     IM_Lup.disk_property(47.5,
                          144.5,

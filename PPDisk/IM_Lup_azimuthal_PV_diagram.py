@@ -10,9 +10,8 @@
 
 from sys import path
 
-path.append(
-    '/mazu/users/jordan/PPDisk_Project/Python_Package/Source_Code/PPDisk_Substructures'
-)
+path.append('../PV_diagram/')
+path.append('../maps/')
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -28,10 +27,7 @@ def main():
     """Main function in IM_Lup_azimuthal_PV_diagram.py"""
 
     # IM Lup (Load ALMA_observation data from DSHARP)
-    PPDisk = ObsData(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO.fits',
-        158.,
-        name='IM_Lup')
+    PPDisk = ObsData('../maps/IMLup_CO.fits', 158., name='IM_Lup')
     PPDisk.stellar_property(1.12, 4250)
     PPDisk.disk_property(47.5,
                          144.5,
@@ -51,8 +47,7 @@ def main():
                     ] * len(r_center_list)
 
     # PLot cut ring for visualization
-    ref_2D_data = fits.getdata(
-        '/mazu/users/jordan/PPDisk_Project/DSHARP_DR/IMLup/IMLup_CO_M1.fits')
+    ref_2D_data = fits.getdata('../maps/IMLup_CO_M1.fits')
     plot_cut_ring(PPDisk, r_center_list, r_width_list, ref_2D_data=ref_2D_data)
 
     # Plot sequential ring PV diagram

@@ -1,0 +1,8 @@
+astropy==4.3.1
+APLpy==2.0
+matplotlib==3.5.2
+pyregion==2.0
+wget==3.2
+beautifulsoup4==4.9.3
+bettermoments==1.6.1.post2
+urllib3==1.26.2
